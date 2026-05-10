@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader, PageShell } from "@/components/Page";
+export const Route = createFileRoute("/security")({ component: () => (<><PageHeader page="security" eyebrow="SECURITY CENTER" fallbackTitle="Posture Overview" fallbackBody="Live posture for your fleet. Threats neutralized, vectors monitored, posture grade." /><PageShell><div className="grid md:grid-cols-3 gap-4">{[["Posture","A+"],["Vectors monitored","412"],["Threats blocked (24h)","18,402"]].map(([l,v]) => <div key={l} className="glass rounded-xl p-6 text-center"><div className="text-3xl text-chrome font-light">{v}</div><div className="text-xs tracking-display text-muted-foreground mt-2">{l.toUpperCase()}</div></div>)}</div></PageShell></>) });
