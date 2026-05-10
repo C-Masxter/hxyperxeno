@@ -9,14 +9,54 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SystemStatusRouteImport } from './routes/system-status'
+import { Route as StatusRouteImport } from './routes/status'
+import { Route as SecurityRouteImport } from './routes/security'
 import { Route as ProductsRouteImport } from './routes/products'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as NewsRouteImport } from './routes/news'
 import { Route as FeaturesRouteImport } from './routes/features'
+import { Route as FaqRouteImport } from './routes/faq'
+import { Route as DownloadsRouteImport } from './routes/downloads'
+import { Route as DocsRouteImport } from './routes/docs'
+import { Route as DemoRouteImport } from './routes/demo'
+import { Route as CreditsRouteImport } from './routes/credits'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CommunityRouteImport } from './routes/community'
+import { Route as ChangelogRouteImport } from './routes/changelog'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SystemStatusRoute = SystemStatusRouteImport.update({
+  id: '/system-status',
+  path: '/system-status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatusRoute = StatusRouteImport.update({
+  id: '/status',
+  path: '/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SecurityRoute = SecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductsRoute = ProductsRouteImport.update({
   id: '/products',
   path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -24,9 +64,59 @@ const PricingRoute = PricingRouteImport.update({
   path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NewsRoute = NewsRouteImport.update({
+  id: '/news',
+  path: '/news',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FeaturesRoute = FeaturesRouteImport.update({
   id: '/features',
   path: '/features',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DownloadsRoute = DownloadsRouteImport.update({
+  id: '/downloads',
+  path: '/downloads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreditsRoute = CreditsRouteImport.update({
+  id: '/credits',
+  path: '/credits',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangelogRoute = ChangelogRouteImport.update({
+  id: '/changelog',
+  path: '/changelog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -37,45 +127,198 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/changelog': typeof ChangelogRoute
+  '/community': typeof CommunityRoute
+  '/contact': typeof ContactRoute
+  '/credits': typeof CreditsRoute
+  '/demo': typeof DemoRoute
+  '/docs': typeof DocsRoute
+  '/downloads': typeof DownloadsRoute
+  '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
+  '/news': typeof NewsRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRoute
+  '/security': typeof SecurityRoute
+  '/status': typeof StatusRoute
+  '/system-status': typeof SystemStatusRoute
+  '/terms': typeof TermsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/changelog': typeof ChangelogRoute
+  '/community': typeof CommunityRoute
+  '/contact': typeof ContactRoute
+  '/credits': typeof CreditsRoute
+  '/demo': typeof DemoRoute
+  '/docs': typeof DocsRoute
+  '/downloads': typeof DownloadsRoute
+  '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
+  '/news': typeof NewsRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRoute
+  '/security': typeof SecurityRoute
+  '/status': typeof StatusRoute
+  '/system-status': typeof SystemStatusRoute
+  '/terms': typeof TermsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/changelog': typeof ChangelogRoute
+  '/community': typeof CommunityRoute
+  '/contact': typeof ContactRoute
+  '/credits': typeof CreditsRoute
+  '/demo': typeof DemoRoute
+  '/docs': typeof DocsRoute
+  '/downloads': typeof DownloadsRoute
+  '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
+  '/news': typeof NewsRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRoute
+  '/security': typeof SecurityRoute
+  '/status': typeof StatusRoute
+  '/system-status': typeof SystemStatusRoute
+  '/terms': typeof TermsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/features' | '/pricing' | '/products'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/changelog'
+    | '/community'
+    | '/contact'
+    | '/credits'
+    | '/demo'
+    | '/docs'
+    | '/downloads'
+    | '/faq'
+    | '/features'
+    | '/news'
+    | '/pricing'
+    | '/privacy'
+    | '/products'
+    | '/security'
+    | '/status'
+    | '/system-status'
+    | '/terms'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/features' | '/pricing' | '/products'
-  id: '__root__' | '/' | '/features' | '/pricing' | '/products'
+  to:
+    | '/'
+    | '/about'
+    | '/changelog'
+    | '/community'
+    | '/contact'
+    | '/credits'
+    | '/demo'
+    | '/docs'
+    | '/downloads'
+    | '/faq'
+    | '/features'
+    | '/news'
+    | '/pricing'
+    | '/privacy'
+    | '/products'
+    | '/security'
+    | '/status'
+    | '/system-status'
+    | '/terms'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/changelog'
+    | '/community'
+    | '/contact'
+    | '/credits'
+    | '/demo'
+    | '/docs'
+    | '/downloads'
+    | '/faq'
+    | '/features'
+    | '/news'
+    | '/pricing'
+    | '/privacy'
+    | '/products'
+    | '/security'
+    | '/status'
+    | '/system-status'
+    | '/terms'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  ChangelogRoute: typeof ChangelogRoute
+  CommunityRoute: typeof CommunityRoute
+  ContactRoute: typeof ContactRoute
+  CreditsRoute: typeof CreditsRoute
+  DemoRoute: typeof DemoRoute
+  DocsRoute: typeof DocsRoute
+  DownloadsRoute: typeof DownloadsRoute
+  FaqRoute: typeof FaqRoute
   FeaturesRoute: typeof FeaturesRoute
+  NewsRoute: typeof NewsRoute
   PricingRoute: typeof PricingRoute
+  PrivacyRoute: typeof PrivacyRoute
   ProductsRoute: typeof ProductsRoute
+  SecurityRoute: typeof SecurityRoute
+  StatusRoute: typeof StatusRoute
+  SystemStatusRoute: typeof SystemStatusRoute
+  TermsRoute: typeof TermsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/system-status': {
+      id: '/system-status'
+      path: '/system-status'
+      fullPath: '/system-status'
+      preLoaderRoute: typeof SystemStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/status': {
+      id: '/status'
+      path: '/status'
+      fullPath: '/status'
+      preLoaderRoute: typeof StatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/security': {
+      id: '/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof SecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/products': {
       id: '/products'
       path: '/products'
       fullPath: '/products'
       preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -85,11 +328,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/news': {
+      id: '/news'
+      path: '/news'
+      fullPath: '/news'
+      preLoaderRoute: typeof NewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/features': {
       id: '/features'
       path: '/features'
       fullPath: '/features'
       preLoaderRoute: typeof FeaturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/downloads': {
+      id: '/downloads'
+      path: '/downloads'
+      fullPath: '/downloads'
+      preLoaderRoute: typeof DownloadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/credits': {
+      id: '/credits'
+      path: '/credits'
+      fullPath: '/credits'
+      preLoaderRoute: typeof CreditsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/changelog': {
+      id: '/changelog'
+      path: '/changelog'
+      fullPath: '/changelog'
+      preLoaderRoute: typeof ChangelogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -104,9 +417,24 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  ChangelogRoute: ChangelogRoute,
+  CommunityRoute: CommunityRoute,
+  ContactRoute: ContactRoute,
+  CreditsRoute: CreditsRoute,
+  DemoRoute: DemoRoute,
+  DocsRoute: DocsRoute,
+  DownloadsRoute: DownloadsRoute,
+  FaqRoute: FaqRoute,
   FeaturesRoute: FeaturesRoute,
+  NewsRoute: NewsRoute,
   PricingRoute: PricingRoute,
+  PrivacyRoute: PrivacyRoute,
   ProductsRoute: ProductsRoute,
+  SecurityRoute: SecurityRoute,
+  StatusRoute: StatusRoute,
+  SystemStatusRoute: SystemStatusRoute,
+  TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
