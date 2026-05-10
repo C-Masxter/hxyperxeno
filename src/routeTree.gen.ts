@@ -13,19 +13,24 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SystemStatusRouteImport } from './routes/system-status'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as SecurityRouteImport } from './routes/security'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as NewsRouteImport } from './routes/news'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as DownloadsRouteImport } from './routes/downloads'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DemoRouteImport } from './routes/demo'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CreditsRouteImport } from './routes/credits'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as ChangelogRouteImport } from './routes/changelog'
+import { Route as AppealsRouteImport } from './routes/appeals'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -49,6 +54,11 @@ const SecurityRoute = SecurityRouteImport.update({
   path: '/security',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductsRoute = ProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -67,6 +77,11 @@ const PricingRoute = PricingRouteImport.update({
 const NewsRoute = NewsRouteImport.update({
   id: '/news',
   path: '/news',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeaturesRoute = FeaturesRouteImport.update({
@@ -94,6 +109,11 @@ const DemoRoute = DemoRouteImport.update({
   path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CreditsRoute = CreditsRouteImport.update({
   id: '/credits',
   path: '/credits',
@@ -114,6 +134,16 @@ const ChangelogRoute = ChangelogRouteImport.update({
   path: '/changelog',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppealsRoute = AppealsRouteImport.update({
+  id: '/appeals',
+  path: '/appeals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -128,19 +158,24 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRoute
+  '/appeals': typeof AppealsRoute
   '/changelog': typeof ChangelogRoute
   '/community': typeof CommunityRoute
   '/contact': typeof ContactRoute
   '/credits': typeof CreditsRoute
+  '/dashboard': typeof DashboardRoute
   '/demo': typeof DemoRoute
   '/docs': typeof DocsRoute
   '/downloads': typeof DownloadsRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
+  '/login': typeof LoginRoute
   '/news': typeof NewsRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRoute
+  '/register': typeof RegisterRoute
   '/security': typeof SecurityRoute
   '/status': typeof StatusRoute
   '/system-status': typeof SystemStatusRoute
@@ -149,19 +184,24 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRoute
+  '/appeals': typeof AppealsRoute
   '/changelog': typeof ChangelogRoute
   '/community': typeof CommunityRoute
   '/contact': typeof ContactRoute
   '/credits': typeof CreditsRoute
+  '/dashboard': typeof DashboardRoute
   '/demo': typeof DemoRoute
   '/docs': typeof DocsRoute
   '/downloads': typeof DownloadsRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
+  '/login': typeof LoginRoute
   '/news': typeof NewsRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRoute
+  '/register': typeof RegisterRoute
   '/security': typeof SecurityRoute
   '/status': typeof StatusRoute
   '/system-status': typeof SystemStatusRoute
@@ -171,19 +211,24 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRoute
+  '/appeals': typeof AppealsRoute
   '/changelog': typeof ChangelogRoute
   '/community': typeof CommunityRoute
   '/contact': typeof ContactRoute
   '/credits': typeof CreditsRoute
+  '/dashboard': typeof DashboardRoute
   '/demo': typeof DemoRoute
   '/docs': typeof DocsRoute
   '/downloads': typeof DownloadsRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
+  '/login': typeof LoginRoute
   '/news': typeof NewsRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRoute
+  '/register': typeof RegisterRoute
   '/security': typeof SecurityRoute
   '/status': typeof StatusRoute
   '/system-status': typeof SystemStatusRoute
@@ -194,19 +239,24 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/admin'
+    | '/appeals'
     | '/changelog'
     | '/community'
     | '/contact'
     | '/credits'
+    | '/dashboard'
     | '/demo'
     | '/docs'
     | '/downloads'
     | '/faq'
     | '/features'
+    | '/login'
     | '/news'
     | '/pricing'
     | '/privacy'
     | '/products'
+    | '/register'
     | '/security'
     | '/status'
     | '/system-status'
@@ -215,19 +265,24 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/admin'
+    | '/appeals'
     | '/changelog'
     | '/community'
     | '/contact'
     | '/credits'
+    | '/dashboard'
     | '/demo'
     | '/docs'
     | '/downloads'
     | '/faq'
     | '/features'
+    | '/login'
     | '/news'
     | '/pricing'
     | '/privacy'
     | '/products'
+    | '/register'
     | '/security'
     | '/status'
     | '/system-status'
@@ -236,19 +291,24 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/admin'
+    | '/appeals'
     | '/changelog'
     | '/community'
     | '/contact'
     | '/credits'
+    | '/dashboard'
     | '/demo'
     | '/docs'
     | '/downloads'
     | '/faq'
     | '/features'
+    | '/login'
     | '/news'
     | '/pricing'
     | '/privacy'
     | '/products'
+    | '/register'
     | '/security'
     | '/status'
     | '/system-status'
@@ -258,19 +318,24 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AdminRoute: typeof AdminRoute
+  AppealsRoute: typeof AppealsRoute
   ChangelogRoute: typeof ChangelogRoute
   CommunityRoute: typeof CommunityRoute
   ContactRoute: typeof ContactRoute
   CreditsRoute: typeof CreditsRoute
+  DashboardRoute: typeof DashboardRoute
   DemoRoute: typeof DemoRoute
   DocsRoute: typeof DocsRoute
   DownloadsRoute: typeof DownloadsRoute
   FaqRoute: typeof FaqRoute
   FeaturesRoute: typeof FeaturesRoute
+  LoginRoute: typeof LoginRoute
   NewsRoute: typeof NewsRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   ProductsRoute: typeof ProductsRoute
+  RegisterRoute: typeof RegisterRoute
   SecurityRoute: typeof SecurityRoute
   StatusRoute: typeof StatusRoute
   SystemStatusRoute: typeof SystemStatusRoute
@@ -307,6 +372,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SecurityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/products': {
       id: '/products'
       path: '/products'
@@ -333,6 +405,13 @@ declare module '@tanstack/react-router' {
       path: '/news'
       fullPath: '/news'
       preLoaderRoute: typeof NewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/features': {
@@ -370,6 +449,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/credits': {
       id: '/credits'
       path: '/credits'
@@ -398,6 +484,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChangelogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/appeals': {
+      id: '/appeals'
+      path: '/appeals'
+      fullPath: '/appeals'
+      preLoaderRoute: typeof AppealsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -418,19 +518,24 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AdminRoute: AdminRoute,
+  AppealsRoute: AppealsRoute,
   ChangelogRoute: ChangelogRoute,
   CommunityRoute: CommunityRoute,
   ContactRoute: ContactRoute,
   CreditsRoute: CreditsRoute,
+  DashboardRoute: DashboardRoute,
   DemoRoute: DemoRoute,
   DocsRoute: DocsRoute,
   DownloadsRoute: DownloadsRoute,
   FaqRoute: FaqRoute,
   FeaturesRoute: FeaturesRoute,
+  LoginRoute: LoginRoute,
   NewsRoute: NewsRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   ProductsRoute: ProductsRoute,
+  RegisterRoute: RegisterRoute,
   SecurityRoute: SecurityRoute,
   StatusRoute: StatusRoute,
   SystemStatusRoute: SystemStatusRoute,
@@ -439,3 +544,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
