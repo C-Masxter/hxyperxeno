@@ -325,7 +325,7 @@ function Roles() {
   useEffect(() => { load(); }, []);
   const setRole = async (user_id: string, role: string) => {
     await supabase.from("user_roles").delete().eq("user_id", user_id);
-    await supabase.from("user_roles").insert({ user_id, role });
+    await supabase.from("user_roles").insert({ user_id, role: role as any });
     load(); toast.success("Role set");
   };
   const usersById: Record<string, string[]> = {};
