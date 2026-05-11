@@ -10,11 +10,15 @@ function Page() {
   const { userId, username, loading, isAdmin } = useSession();
   const [purchases, setPurchases] = useState<any[]>([]);
   const [notifs, setNotifs] = useState<any[]>([]);
+  const [downloads, setDownloads] = useState<any[]>([]);
   useEffect(() => {
     if (!userId) return;
     supabase.from("purchase_requests").select("*").eq("user_id", userId).order("created_at", { ascending: false }).then(({ data }) => setPurchases(data ?? []));
     supabase.from("notifications").select("*").or(`user_id.eq.${userId},user_id.is.null`).order("created_at", { ascending: false }).limit(20).then(({ data }) => setNotifs(data ?? []));
+    supabase.from("downloads").select("*").then(({ data }) => setDownloads(data ?? []));
   }, [userId]);
+  const approvedKeys = new Set(purchases.filter((p) => p.status === "approved").map((p) => p.product_key));
+  const myDownloads = downloads.filter((d) => approvedKeys.has(d.product_key));
 
   if (loading) return <div className="p-12 text-center text-muted-foreground">Loading…</div>;
   if (!userId) return (
@@ -31,6 +35,25 @@ function Page() {
         <div className="glass rounded-xl p-6"><div className="text-xs tracking-display text-muted-foreground">PURCHASES</div><div className="text-3xl font-light text-chrome mt-2">{purchases.length}</div></div>
         <div className="glass rounded-xl p-6"><div className="text-xs tracking-display text-muted-foreground">NOTIFICATIONS</div><div className="text-3xl font-light text-chrome mt-2">{notifs.length}</div></div>
         <div className="glass rounded-xl p-6"><div className="text-xs tracking-display text-muted-foreground">ROLE</div><div className="text-3xl font-light text-ice mt-2">{isAdmin ? "ADMIN" : "USER"}</div></div>
+      </div>
+
+      <div className="glass rounded-xl p-6 mb-4">
+        <div className="text-xs tracking-brand text-ice mb-3">YOUR PRODUCTS</div>
+        {myDownloads.length === 0 ? (
+          <div className="text-muted-foreground text-sm">No approved products yet. Once a purchase is approved your download links appear here.</div>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-3">
+            {myDownloads.map((d) => (
+              <div key={d.id} className="border border-border rounded-lg p-4 flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm">{d.file_name}</div>
+                  <div className="text-xs text-muted-foreground">{d.product_key.toUpperCase()} · v{d.version}</div>
+                </div>
+                <a href={d.url} target="_blank" rel="noopener" className="btn-ice text-xs">Download</a>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">

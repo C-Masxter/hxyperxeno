@@ -7,10 +7,13 @@ import { saveSection, useEditMode } from "@/lib/cms";
 
 export const Route = createFileRoute("/admin")({ component: Page });
 
-const TABS = [
-  "Overview","CMS Editor","Visual Editor","Pricing","Products","FAQ","Changelog","News","Announcements",
-  "System Status","Downloads","Purchases","Appeals","Users","Roles","Notifications","Audit Logs","Security Logs",
-  "Site Settings","Payment Methods","IP Blocklist","Community","Sessions","Email Templates","Documentation",
+const TAB_GROUPS: { group: string; tabs: string[] }[] = [
+  { group: "Dashboard", tabs: ["Overview"] },
+  { group: "Content", tabs: ["Visual Editor", "CMS Editor", "News", "Announcements", "Changelog", "FAQ", "Documentation"] },
+  { group: "Commerce", tabs: ["Products", "Pricing", "Downloads", "Purchases", "Payment Methods"] },
+  { group: "Users", tabs: ["Users", "Roles", "Appeals", "Notifications", "Community"] },
+  { group: "System", tabs: ["System Status", "Site Settings", "IP Blocklist", "Sessions", "Email Templates"] },
+  { group: "Logs", tabs: ["Audit Logs", "Security Logs"] },
 ];
 
 function Page() {
@@ -25,19 +28,25 @@ function Page() {
     </div>
   );
   return (
-    <div className="px-6 pt-12 pb-24">
+    <div className="px-6 pt-12 pb-24" data-no-edit>
       <div className="mx-auto max-w-7xl">
         <div className="flex items-baseline justify-between mb-8">
           <div>
             <div className="text-xs tracking-brand text-ice">ADMIN TERMINAL</div>
             <h1 className="text-4xl font-light mt-1">Control Center</h1>
+            <div className="text-xs text-muted-foreground mt-1 tracking-display">{tab.toUpperCase()}</div>
           </div>
           <span className="text-xs tracking-display text-muted-foreground">● ONLINE</span>
         </div>
         <div className="grid lg:grid-cols-[240px_1fr] gap-6">
-          <aside className="glass rounded-xl p-3 max-h-[80vh] overflow-y-auto">
-            {TABS.map((t) => (
-              <button key={t} onClick={() => setTab(t)} className={`w-full text-left px-3 py-2 rounded text-sm transition ${tab === t ? "bg-ice/15 text-ice" : "text-muted-foreground hover:text-foreground hover:bg-white/5"}`}>{t}</button>
+          <aside className="glass rounded-xl p-3 max-h-[80vh] overflow-y-auto space-y-4">
+            {TAB_GROUPS.map((g) => (
+              <div key={g.group}>
+                <div className="text-[10px] tracking-brand text-ice/70 px-3 pb-1 pt-1">{g.group.toUpperCase()}</div>
+                {g.tabs.map((t) => (
+                  <button key={t} onClick={() => setTab(t)} className={`w-full text-left px-3 py-1.5 rounded text-sm transition ${tab === t ? "bg-ice/15 text-ice" : "text-muted-foreground hover:text-foreground hover:bg-white/5"}`}>{t}</button>
+                ))}
+              </div>
             ))}
           </aside>
           <section className="glass-strong rounded-xl p-6 min-h-[70vh]">
