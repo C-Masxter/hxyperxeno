@@ -10,7 +10,7 @@ export const Route = createFileRoute("/admin")({ component: Page });
 const TAB_GROUPS: { group: string; tabs: string[] }[] = [
   { group: "Dashboard", tabs: ["Overview"] },
   { group: "Content", tabs: ["Visual Editor", "CMS Editor", "News", "Announcements", "Changelog", "FAQ", "Documentation"] },
-  { group: "Commerce", tabs: ["Products", "Pricing", "Downloads", "Purchases", "Payment Methods"] },
+  { group: "Commerce", tabs: ["Products", "Pricing", "Product Downloads", "Downloads (raw)", "Purchases", "Payment Methods"] },
   { group: "Users", tabs: ["Users", "Roles", "Appeals", "Notifications", "Community"] },
   { group: "System", tabs: ["System Status", "Site Settings", "IP Blocklist", "Sessions", "Email Templates"] },
   { group: "Logs", tabs: ["Audit Logs", "Security Logs"] },
@@ -70,7 +70,8 @@ function Tab({ name }: { name: string }) {
     case "News": return <SimpleTable table="news_posts" cols={["title","body","published"]} />;
     case "Announcements": return <SimpleTable table="announcements" cols={["title","body","type","active"]} />;
     case "System Status": return <SimpleTable table="system_status" cols={["service_name","status","message"]} />;
-    case "Downloads": return <SimpleTable table="downloads" cols={["product_key","file_name","version","url","requires_approval"]} />;
+    case "Downloads (raw)": return <SimpleTable table="downloads" cols={["product_key","file_name","version","url","requires_approval"]} />;
+    case "Product Downloads": return <ProductDownloads />;
     case "Purchases": return <Purchases />;
     case "Appeals": return <Appeals />;
     case "Users": return <Users />;
