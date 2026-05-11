@@ -43,6 +43,9 @@ export function CursorGlow() {
 }
 
 export function Particles() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return null;
   const dots = Array.from({ length: 30 });
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
