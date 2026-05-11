@@ -10,7 +10,7 @@ export const Route = createFileRoute("/admin")({ component: Page });
 const TAB_GROUPS: { group: string; tabs: string[] }[] = [
   { group: "Dashboard", tabs: ["Overview"] },
   { group: "Content", tabs: ["Visual Editor", "CMS Editor", "News", "Announcements", "Changelog", "FAQ", "Documentation"] },
-  { group: "Commerce", tabs: ["Products", "Pricing", "Downloads", "Purchases", "Payment Methods"] },
+  { group: "Commerce", tabs: ["Products", "Pricing", "Product Downloads", "Downloads (raw)", "Purchases", "Payment Methods"] },
   { group: "Users", tabs: ["Users", "Roles", "Appeals", "Notifications", "Community"] },
   { group: "System", tabs: ["System Status", "Site Settings", "IP Blocklist", "Sessions", "Email Templates"] },
   { group: "Logs", tabs: ["Audit Logs", "Security Logs"] },
@@ -70,7 +70,8 @@ function Tab({ name }: { name: string }) {
     case "News": return <SimpleTable table="news_posts" cols={["title","body","published"]} />;
     case "Announcements": return <SimpleTable table="announcements" cols={["title","body","type","active"]} />;
     case "System Status": return <SimpleTable table="system_status" cols={["service_name","status","message"]} />;
-    case "Downloads": return <SimpleTable table="downloads" cols={["product_key","file_name","version","url","requires_approval"]} />;
+    case "Downloads (raw)": return <SimpleTable table="downloads" cols={["product_key","file_name","version","url","requires_approval"]} />;
+    case "Product Downloads": return <ProductDownloads />;
     case "Purchases": return <Purchases />;
     case "Appeals": return <Appeals />;
     case "Users": return <Users />;
@@ -158,12 +159,13 @@ function VisualEditor() {
   return (
     <div>
       <div className="text-xs tracking-brand text-ice mb-3">VISUAL LIVE EDITOR</div>
-      <p className="text-sm text-muted-foreground">Toggle Edit Mode, then navigate to any page. Editable text shows a glowing outline; click to edit inline. Changes save instantly to the database and appear globally for all users.</p>
-      <button onClick={toggle} className={`mt-6 ${enabled ? "btn-ice" : "btn-ghost-ice"}`}>{enabled ? "EDIT MODE ON — click anywhere to leave" : "Enable Edit Mode"}</button>
+      <p className="text-sm text-muted-foreground">Toggle Edit Mode, then visit any page. <b>Every</b> piece of text on the site becomes outlined and clickable — edit inline, change colors with the floating toolbar. Saves are instant and global.</p>
+      <button onClick={toggle} className={`mt-6 ${enabled ? "btn-ice" : "btn-ghost-ice"}`}>{enabled ? "EDIT MODE ON — click to turn off" : "Enable Edit Mode"}</button>
+      <div className="mt-2 text-xs text-muted-foreground">Tip: focus a text → use the floating color picker that appears above it.</div>
       <div className="mt-6 grid md:grid-cols-3 gap-3">
-        {["/","/features","/products","/pricing","/about","/contact","/faq","/security","/news","/changelog","/terms","/privacy"].map((p) => (
+        {["/","/features","/products","/pricing","/about","/contact","/faq","/security","/news","/changelog","/terms","/privacy","/docs","/dashboard","/credits"].map((p) => (
           <a key={p} href={p} target="_blank" rel="noopener" className="glass rounded-lg p-4 hover:border-ice border border-transparent">
-            <div className="text-xs tracking-display text-muted-foreground">PREVIEW</div>
+            <div className="text-xs tracking-display text-muted-foreground">OPEN PAGE</div>
             <div className="text-sm mt-1 text-ice">{p}</div>
           </a>
         ))}
@@ -373,6 +375,73 @@ function Notifications() {
       <input placeholder="Target user_id (blank = everyone)" value={target} onChange={(e) => setTarget(e.target.value)} className="w-full bg-input/40 border border-border rounded px-3 py-2 text-sm mb-2" />
       <textarea placeholder="Message" value={msg} onChange={(e) => setMsg(e.target.value)} className="w-full bg-input/40 border border-border rounded px-3 py-2 text-sm min-h-24" />
       <button onClick={send} className="btn-ice mt-3">Broadcast</button>
+    </div>
+  );
+}
+
+function ProductDownloads() {
+  const [products, setProducts] = useState<any[]>([]);
+  const [downloads, setDownloads] = useState<any[]>([]);
+  const load = async () => {
+    const [{ data: p }, { data: d }] = await Promise.all([
+      supabase.from("products").select("*").order("sort_order"),
+      supabase.from("downloads").select("*"),
+    ]);
+    setProducts(p ?? []); setDownloads(d ?? []);
+  };
+  useEffect(() => { load(); }, []);
+  const upsert = async (product_key: string, patch: any) => {
+    const existing = downloads.find((d) => d.product_key === product_key);
+    if (existing) {
+      const { error } = await supabase.from("downloads").update(patch).eq("id", existing.id);
+      if (error) return toast.error(error.message);
+    } else {
+      const { error } = await supabase.from("downloads").insert({
+        product_key, url: patch.url ?? "", file_name: patch.file_name ?? `${product_key}.exe`,
+        version: patch.version ?? "1.0.0", requires_approval: true, ...patch,
+      });
+      if (error) return toast.error(error.message);
+    }
+    toast.success("Saved"); load();
+  };
+  return (
+    <div className="space-y-4">
+      <div className="text-xs tracking-brand text-ice">PRODUCT DOWNLOADS — set the download link for each tier card</div>
+      <p className="text-xs text-muted-foreground">Approved users see a download button on their dashboard pulling from the URL set here.</p>
+      {products.map((p) => {
+        const d = downloads.find((x) => x.product_key === p.product_key) ?? {};
+        return (
+          <div key={p.id} className="border border-border rounded-lg p-4">
+            <div className="flex items-baseline justify-between">
+              <div>
+                <div className="text-xs tracking-brand text-ice">{p.tier?.toUpperCase()}</div>
+                <div className="text-lg">{p.name} <span className="text-muted-foreground text-xs">· {p.product_key}</span></div>
+              </div>
+              <div className="text-xs text-muted-foreground">${(p.price_cents/100).toFixed(2)}</div>
+            </div>
+            <div className="mt-3 grid md:grid-cols-3 gap-2">
+              <label className="text-xs">
+                <div className="text-muted-foreground tracking-display mb-1">DOWNLOAD URL</div>
+                <input defaultValue={d.url ?? ""} placeholder="https://..."
+                  onBlur={(e) => e.target.value !== (d.url ?? "") && upsert(p.product_key, { url: e.target.value })}
+                  className="w-full bg-input/40 border border-border rounded px-2 py-1.5 text-sm focus:outline-none focus:border-ice" />
+              </label>
+              <label className="text-xs">
+                <div className="text-muted-foreground tracking-display mb-1">FILE NAME</div>
+                <input defaultValue={d.file_name ?? `${p.product_key}.exe`}
+                  onBlur={(e) => e.target.value !== (d.file_name ?? "") && upsert(p.product_key, { file_name: e.target.value })}
+                  className="w-full bg-input/40 border border-border rounded px-2 py-1.5 text-sm focus:outline-none focus:border-ice" />
+              </label>
+              <label className="text-xs">
+                <div className="text-muted-foreground tracking-display mb-1">VERSION</div>
+                <input defaultValue={d.version ?? "1.0.0"}
+                  onBlur={(e) => e.target.value !== (d.version ?? "") && upsert(p.product_key, { version: e.target.value })}
+                  className="w-full bg-input/40 border border-border rounded px-2 py-1.5 text-sm focus:outline-none focus:border-ice" />
+              </label>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

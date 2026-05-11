@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 
 export function IntroLoader() {
-  const [done, setDone] = useState(typeof window === "undefined");
+  const [mounted, setMounted] = useState(false);
+  const [done, setDone] = useState(false);
   useEffect(() => {
-    if (done) return;
+    setMounted(true);
     const t = setTimeout(() => setDone(true), 2600);
     return () => clearTimeout(t);
-  }, [done]);
-  if (done) return null;
+  }, []);
+  if (!mounted || done) return null;
   const letters = "HYPERXENO".split("");
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background animated-gradient">
@@ -43,6 +44,9 @@ export function CursorGlow() {
 }
 
 export function Particles() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return null;
   const dots = Array.from({ length: 30 });
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
