@@ -377,3 +377,70 @@ function Notifications() {
     </div>
   );
 }
+
+function ProductDownloads() {
+  const [products, setProducts] = useState<any[]>([]);
+  const [downloads, setDownloads] = useState<any[]>([]);
+  const load = async () => {
+    const [{ data: p }, { data: d }] = await Promise.all([
+      supabase.from("products").select("*").order("sort_order"),
+      supabase.from("downloads").select("*"),
+    ]);
+    setProducts(p ?? []); setDownloads(d ?? []);
+  };
+  useEffect(() => { load(); }, []);
+  const upsert = async (product_key: string, patch: any) => {
+    const existing = downloads.find((d) => d.product_key === product_key);
+    if (existing) {
+      const { error } = await supabase.from("downloads").update(patch).eq("id", existing.id);
+      if (error) return toast.error(error.message);
+    } else {
+      const { error } = await supabase.from("downloads").insert({
+        product_key, url: patch.url ?? "", file_name: patch.file_name ?? `${product_key}.exe`,
+        version: patch.version ?? "1.0.0", requires_approval: true, ...patch,
+      });
+      if (error) return toast.error(error.message);
+    }
+    toast.success("Saved"); load();
+  };
+  return (
+    <div className="space-y-4">
+      <div className="text-xs tracking-brand text-ice">PRODUCT DOWNLOADS — set the download link for each tier card</div>
+      <p className="text-xs text-muted-foreground">Approved users see a download button on their dashboard pulling from the URL set here.</p>
+      {products.map((p) => {
+        const d = downloads.find((x) => x.product_key === p.product_key) ?? {};
+        return (
+          <div key={p.id} className="border border-border rounded-lg p-4">
+            <div className="flex items-baseline justify-between">
+              <div>
+                <div className="text-xs tracking-brand text-ice">{p.tier?.toUpperCase()}</div>
+                <div className="text-lg">{p.name} <span className="text-muted-foreground text-xs">· {p.product_key}</span></div>
+              </div>
+              <div className="text-xs text-muted-foreground">${(p.price_cents/100).toFixed(2)}</div>
+            </div>
+            <div className="mt-3 grid md:grid-cols-3 gap-2">
+              <label className="text-xs">
+                <div className="text-muted-foreground tracking-display mb-1">DOWNLOAD URL</div>
+                <input defaultValue={d.url ?? ""} placeholder="https://..."
+                  onBlur={(e) => e.target.value !== (d.url ?? "") && upsert(p.product_key, { url: e.target.value })}
+                  className="w-full bg-input/40 border border-border rounded px-2 py-1.5 text-sm focus:outline-none focus:border-ice" />
+              </label>
+              <label className="text-xs">
+                <div className="text-muted-foreground tracking-display mb-1">FILE NAME</div>
+                <input defaultValue={d.file_name ?? `${p.product_key}.exe`}
+                  onBlur={(e) => e.target.value !== (d.file_name ?? "") && upsert(p.product_key, { file_name: e.target.value })}
+                  className="w-full bg-input/40 border border-border rounded px-2 py-1.5 text-sm focus:outline-none focus:border-ice" />
+              </label>
+              <label className="text-xs">
+                <div className="text-muted-foreground tracking-display mb-1">VERSION</div>
+                <input defaultValue={d.version ?? "1.0.0"}
+                  onBlur={(e) => e.target.value !== (d.version ?? "") && upsert(p.product_key, { version: e.target.value })}
+                  className="w-full bg-input/40 border border-border rounded px-2 py-1.5 text-sm focus:outline-none focus:border-ice" />
+              </label>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
