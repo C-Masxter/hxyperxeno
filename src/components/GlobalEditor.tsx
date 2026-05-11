@@ -9,8 +9,8 @@ function cssPath(el: Element, root: Element): string {
   const parts: string[] = [];
   let cur: Element | null = el;
   while (cur && cur !== root && cur.parentElement) {
-    const parent = cur.parentElement;
-    const sib = Array.from(parent.children);
+    const parent: Element = cur.parentElement;
+    const sib: Element[] = Array.from(parent.children);
     const idx = sib.indexOf(cur) + 1;
     parts.unshift(`${cur.tagName.toLowerCase()}:nth-child(${idx})`);
     cur = parent;
