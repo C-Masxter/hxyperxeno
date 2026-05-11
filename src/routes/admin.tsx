@@ -159,12 +159,13 @@ function VisualEditor() {
   return (
     <div>
       <div className="text-xs tracking-brand text-ice mb-3">VISUAL LIVE EDITOR</div>
-      <p className="text-sm text-muted-foreground">Toggle Edit Mode, then navigate to any page. Editable text shows a glowing outline; click to edit inline. Changes save instantly to the database and appear globally for all users.</p>
-      <button onClick={toggle} className={`mt-6 ${enabled ? "btn-ice" : "btn-ghost-ice"}`}>{enabled ? "EDIT MODE ON — click anywhere to leave" : "Enable Edit Mode"}</button>
+      <p className="text-sm text-muted-foreground">Toggle Edit Mode, then visit any page. <b>Every</b> piece of text on the site becomes outlined and clickable — edit inline, change colors with the floating toolbar. Saves are instant and global.</p>
+      <button onClick={toggle} className={`mt-6 ${enabled ? "btn-ice" : "btn-ghost-ice"}`}>{enabled ? "EDIT MODE ON — click to turn off" : "Enable Edit Mode"}</button>
+      <div className="mt-2 text-xs text-muted-foreground">Tip: focus a text → use the floating color picker that appears above it.</div>
       <div className="mt-6 grid md:grid-cols-3 gap-3">
-        {["/","/features","/products","/pricing","/about","/contact","/faq","/security","/news","/changelog","/terms","/privacy"].map((p) => (
+        {["/","/features","/products","/pricing","/about","/contact","/faq","/security","/news","/changelog","/terms","/privacy","/docs","/dashboard","/credits"].map((p) => (
           <a key={p} href={p} target="_blank" rel="noopener" className="glass rounded-lg p-4 hover:border-ice border border-transparent">
-            <div className="text-xs tracking-display text-muted-foreground">PREVIEW</div>
+            <div className="text-xs tracking-display text-muted-foreground">OPEN PAGE</div>
             <div className="text-sm mt-1 text-ice">{p}</div>
           </a>
         ))}
