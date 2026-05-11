@@ -1,16 +1,10 @@
 import { useEffect, useState } from "react";
 
 export function IntroLoader() {
-  const [done, setDone] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return sessionStorage.getItem("hx-intro") === "1";
-  });
+  const [done, setDone] = useState(typeof window === "undefined");
   useEffect(() => {
     if (done) return;
-    const t = setTimeout(() => {
-      sessionStorage.setItem("hx-intro", "1");
-      setDone(true);
-    }, 2600);
+    const t = setTimeout(() => setDone(true), 2600);
     return () => clearTimeout(t);
   }, [done]);
   if (done) return null;
