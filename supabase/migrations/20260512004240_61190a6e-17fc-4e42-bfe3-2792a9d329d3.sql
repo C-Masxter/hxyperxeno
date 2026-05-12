@@ -1,0 +1,1 @@
+CREATE POLICY "downloads auth read" ON public.downloads FOR SELECT TO authenticated USING (true);
