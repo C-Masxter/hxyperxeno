@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as XenotextRouteImport } from './routes/xenotext'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SystemStatusRouteImport } from './routes/system-status'
 import { Route as StatusRouteImport } from './routes/status'
@@ -34,6 +35,11 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
+const XenotextRoute = XenotextRouteImport.update({
+  id: '/xenotext',
+  path: '/xenotext',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -180,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/status': typeof StatusRoute
   '/system-status': typeof SystemStatusRoute
   '/terms': typeof TermsRoute
+  '/xenotext': typeof XenotextRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -206,6 +213,7 @@ export interface FileRoutesByTo {
   '/status': typeof StatusRoute
   '/system-status': typeof SystemStatusRoute
   '/terms': typeof TermsRoute
+  '/xenotext': typeof XenotextRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -233,6 +241,7 @@ export interface FileRoutesById {
   '/status': typeof StatusRoute
   '/system-status': typeof SystemStatusRoute
   '/terms': typeof TermsRoute
+  '/xenotext': typeof XenotextRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/status'
     | '/system-status'
     | '/terms'
+    | '/xenotext'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -287,6 +297,7 @@ export interface FileRouteTypes {
     | '/status'
     | '/system-status'
     | '/terms'
+    | '/xenotext'
   id:
     | '__root__'
     | '/'
@@ -313,6 +324,7 @@ export interface FileRouteTypes {
     | '/status'
     | '/system-status'
     | '/terms'
+    | '/xenotext'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -340,10 +352,18 @@ export interface RootRouteChildren {
   StatusRoute: typeof StatusRoute
   SystemStatusRoute: typeof SystemStatusRoute
   TermsRoute: typeof TermsRoute
+  XenotextRoute: typeof XenotextRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/xenotext': {
+      id: '/xenotext'
+      path: '/xenotext'
+      fullPath: '/xenotext'
+      preLoaderRoute: typeof XenotextRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -540,7 +560,18 @@ const rootRouteChildren: RootRouteChildren = {
   StatusRoute: StatusRoute,
   SystemStatusRoute: SystemStatusRoute,
   TermsRoute: TermsRoute,
+  XenotextRoute: XenotextRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
