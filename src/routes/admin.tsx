@@ -11,7 +11,7 @@ const TAB_GROUPS: { group: string; tabs: string[] }[] = [
   { group: "Dashboard", tabs: ["Overview"] },
   { group: "Content", tabs: ["Visual Editor", "CMS Editor", "News", "Announcements", "Changelog", "FAQ", "Documentation"] },
   { group: "Commerce", tabs: ["Products", "Pricing", "Downloads", "Purchases", "Payment Methods"] },
-  { group: "Users", tabs: ["Users", "Roles", "Appeals", "Notifications", "Community"] },
+  { group: "Users", tabs: ["Users", "Roles", "Appeals", "Notifications", "Community", "XenoText"] },
   { group: "System", tabs: ["System Status", "Site Settings", "IP Blocklist", "Sessions", "Email Templates"] },
   { group: "Logs", tabs: ["Audit Logs", "Security Logs"] },
 ];
@@ -82,6 +82,7 @@ function Tab({ name }: { name: string }) {
     case "Payment Methods": return <SimpleTable table="payment_methods" cols={["method_key","name","enabled","sort_order"]} />;
     case "IP Blocklist": return <SimpleTable table="ip_blocklist" cols={["ip","reason"]} />;
     case "Community": return <SimpleTable table="community_posts" cols={["title","body","hidden"]} />;
+    case "XenoText": return <AdminMessages />;
     case "Sessions": return <Note text="Active sessions appear here. Force-logout uses Supabase Auth admin API (server-side)." />;
     case "Email Templates": return <Note text="Email is disabled in this build. Templates are UI-only stubs." />;
     case "Documentation": return <CmsEditor pageFilter="docs" />;
