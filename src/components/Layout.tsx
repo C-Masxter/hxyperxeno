@@ -44,6 +44,7 @@ export function Navbar() {
           )}
           {session.userId ? (
             <>
+              <Link to="/xenotext" className="text-sm text-muted-foreground hover:text-ice">XenoText</Link>
               <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-ice">Dashboard</Link>
               {session.isAdmin && <Link to="/admin" className="text-sm text-ice">Admin</Link>}
               <button onClick={logout} className="text-sm text-muted-foreground hover:text-ice">Logout</button>

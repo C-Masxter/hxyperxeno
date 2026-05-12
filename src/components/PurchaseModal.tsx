@@ -16,8 +16,16 @@ export function PurchaseModal({ product, onClose }: { product: any; onClose: () 
     e.preventDefault();
     if (!userId) { toast.error("Please log in first"); nav({ to: "/login" }); return; }
     setSubmitting(true);
+    let ip = "";
+    try { ip = (await fetch("https://api.ipify.org?format=json").then((r) => r.json())).ip ?? ""; } catch {}
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const device = typeof navigator !== "undefined"
+      ? `${navigator.platform || "?"} · ${(navigator as any).language || ""} · ${window.screen.width}x${window.screen.height}`
+      : "";
     const { error } = await supabase.from("purchase_requests").insert({
-      user_id: userId, product_key: product.product_key, amount_cents: product.price_cents, ...form,
+      user_id: userId, product_key: product.product_key, amount_cents: product.price_cents,
+      ip_address: ip, user_agent: ua, device_info: device,
+      ...form,
     });
     setSubmitting(false);
     if (error) return toast.error(error.message);

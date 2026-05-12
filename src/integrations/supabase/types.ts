@@ -179,6 +179,36 @@ export type Database = {
         }
         Relationships: []
       }
+      direct_messages: {
+        Row: {
+          content: string
+          created_at: string
+          hidden_by_admin: boolean
+          id: string
+          read: boolean
+          recipient_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          hidden_by_admin?: boolean
+          id?: string
+          read?: boolean
+          recipient_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          hidden_by_admin?: boolean
+          id?: string
+          read?: boolean
+          recipient_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
       downloads: {
         Row: {
           file_name: string
@@ -484,39 +514,51 @@ export type Database = {
           admin_note: string | null
           amount_cents: number
           cashapp_username: string
+          country: string | null
           created_at: string
+          device_info: string | null
           email: string
           full_name: string
           id: string
+          ip_address: string | null
           phone: string
           product_key: string
           status: string
+          user_agent: string | null
           user_id: string | null
         }
         Insert: {
           admin_note?: string | null
           amount_cents?: number
           cashapp_username: string
+          country?: string | null
           created_at?: string
+          device_info?: string | null
           email: string
           full_name: string
           id?: string
+          ip_address?: string | null
           phone: string
           product_key: string
           status?: string
+          user_agent?: string | null
           user_id?: string | null
         }
         Update: {
           admin_note?: string | null
           amount_cents?: number
           cashapp_username?: string
+          country?: string | null
           created_at?: string
+          device_info?: string | null
           email?: string
           full_name?: string
           id?: string
+          ip_address?: string | null
           phone?: string
           product_key?: string
           status?: string
+          user_agent?: string | null
           user_id?: string | null
         }
         Relationships: []

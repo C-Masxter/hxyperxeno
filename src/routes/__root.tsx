@@ -4,6 +4,7 @@ import appCss from "../styles.css?url";
 import { Navbar, Footer } from "@/components/Layout";
 import { IntroLoader, CursorGlow, Particles } from "@/components/Effects";
 import { GlobalEditor } from "@/components/GlobalEditor";
+import { DMPopup } from "@/components/DMPopup";
 import { Toaster } from "sonner";
 
 function NotFoundComponent() {
@@ -73,6 +74,7 @@ function RootComponent() {
       <CursorGlow />
       <Particles />
       <GlobalEditor />
+      <DMPopup />
       <div className="relative z-10 flex min-h-screen flex-col">
         <Navbar />
         <main className="flex-1"><Outlet /></main>

@@ -11,7 +11,7 @@ const TAB_GROUPS: { group: string; tabs: string[] }[] = [
   { group: "Dashboard", tabs: ["Overview"] },
   { group: "Content", tabs: ["Visual Editor", "CMS Editor", "News", "Announcements", "Changelog", "FAQ", "Documentation"] },
   { group: "Commerce", tabs: ["Products", "Pricing", "Downloads", "Purchases", "Payment Methods"] },
-  { group: "Users", tabs: ["Users", "Roles", "Appeals", "Notifications", "Community"] },
+  { group: "Users", tabs: ["Users", "Roles", "Appeals", "Notifications", "Community", "XenoText"] },
   { group: "System", tabs: ["System Status", "Site Settings", "IP Blocklist", "Sessions", "Email Templates"] },
   { group: "Logs", tabs: ["Audit Logs", "Security Logs"] },
 ];
@@ -82,6 +82,7 @@ function Tab({ name }: { name: string }) {
     case "Payment Methods": return <SimpleTable table="payment_methods" cols={["method_key","name","enabled","sort_order"]} />;
     case "IP Blocklist": return <SimpleTable table="ip_blocklist" cols={["ip","reason"]} />;
     case "Community": return <SimpleTable table="community_posts" cols={["title","body","hidden"]} />;
+    case "XenoText": return <AdminMessages />;
     case "Sessions": return <Note text="Active sessions appear here. Force-logout uses Supabase Auth admin API (server-side)." />;
     case "Email Templates": return <Note text="Email is disabled in this build. Templates are UI-only stubs." />;
     case "Documentation": return <CmsEditor pageFilter="docs" />;
@@ -95,28 +96,58 @@ function Note({ text }: { text: string }) {
 
 function Overview() {
   const [stats, setStats] = useState({ users: 0, purchases: 0, appeals: 0, revenue: 0 });
-  useEffect(() => {
-    (async () => {
-      const [u, p, a, r] = await Promise.all([
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
-        supabase.from("purchase_requests").select("*", { count: "exact", head: true }),
-        supabase.from("appeals").select("*", { count: "exact", head: true }),
-        supabase.from("purchase_requests").select("amount_cents").eq("status", "approved"),
-      ]);
-      setStats({
-        users: u.count ?? 0, purchases: p.count ?? 0, appeals: a.count ?? 0,
-        revenue: (r.data ?? []).reduce((s: number, x: any) => s + (x.amount_cents || 0), 0) / 100,
-      });
-    })();
-  }, []);
+  const [actualRevenue, setActualRevenue] = useState(0);
+  const [override, setOverride] = useState<number | null>(null);
+  const [custom, setCustom] = useState("");
+  const load = async () => {
+    const [u, p, a, r, s] = await Promise.all([
+      supabase.from("profiles").select("*", { count: "exact", head: true }),
+      supabase.from("purchase_requests").select("*", { count: "exact", head: true }),
+      supabase.from("appeals").select("*", { count: "exact", head: true }),
+      supabase.from("purchase_requests").select("amount_cents").eq("status", "approved"),
+      supabase.from("site_settings").select("value").eq("key", "revenue_override").maybeSingle(),
+    ]);
+    const computed = (r.data ?? []).reduce((sum: number, x: any) => sum + (x.amount_cents || 0), 0) / 100;
+    setActualRevenue(computed);
+    const ov = (s.data?.value as any)?.amount;
+    setOverride(typeof ov === "number" ? ov : null);
+    setStats({
+      users: u.count ?? 0, purchases: p.count ?? 0, appeals: a.count ?? 0,
+      revenue: typeof ov === "number" ? ov : computed,
+    });
+  };
+  useEffect(() => { load(); }, []);
+  const setRevenue = async (amount: number | null) => {
+    if (amount === null) {
+      await supabase.from("site_settings").delete().eq("key", "revenue_override");
+    } else {
+      await supabase.from("site_settings").upsert({ key: "revenue_override", value: { amount } }, { onConflict: "key" });
+    }
+    toast.success(amount === null ? "Reset to actual" : `Set to $${amount.toLocaleString()}`);
+    setCustom(""); load();
+  };
   return (
-    <div className="grid md:grid-cols-4 gap-4">
-      {Object.entries(stats).map(([k, v]) => (
-        <div key={k} className="glass rounded-xl p-6">
-          <div className="text-xs tracking-display text-muted-foreground">{k.toUpperCase()}</div>
-          <div className="text-3xl text-chrome font-light mt-2">{k === "revenue" ? `$${v.toLocaleString()}` : v}</div>
+    <div className="space-y-4">
+      <div className="grid md:grid-cols-4 gap-4">
+        {Object.entries(stats).map(([k, v]) => (
+          <div key={k} className="glass rounded-xl p-6">
+            <div className="text-xs tracking-display text-muted-foreground">{k.toUpperCase()}</div>
+            <div className="text-3xl text-chrome font-light mt-2">{k === "revenue" ? `$${(v as number).toLocaleString()}` : v}</div>
+            {k === "revenue" && override !== null && <div className="text-[10px] mt-1 text-ice">OVERRIDE · actual ${actualRevenue.toLocaleString()}</div>}
+          </div>
+        ))}
+      </div>
+      <div className="glass rounded-xl p-4">
+        <div className="text-xs tracking-brand text-ice mb-2">REVENUE DISPLAY</div>
+        <div className="flex flex-wrap gap-2 items-center">
+          <button onClick={() => setRevenue(null)} className="btn-ghost-ice text-xs">Reset to actual (${actualRevenue.toLocaleString()})</button>
+          {[1000, 10000, 50000, 100000, 500000].map((n) => (
+            <button key={n} onClick={() => setRevenue(n)} className="text-xs px-3 py-1 rounded border border-border hover:border-ice">${n.toLocaleString()}</button>
+          ))}
+          <input value={custom} onChange={(e) => setCustom(e.target.value)} placeholder="Custom $" className="bg-input/40 border border-border rounded px-3 py-1 text-xs w-32" />
+          <button onClick={() => { const n = Number(custom); if (!isNaN(n)) setRevenue(n); }} className="btn-ice text-xs">Apply</button>
         </div>
-      ))}
+      </div>
     </div>
   );
 }
@@ -255,21 +286,30 @@ function Purchases() {
       ))}</div>
       <div className="space-y-2">
         {filtered.map((p) => (
-          <div key={p.id} className="border border-border rounded-lg p-4 flex justify-between items-start gap-4">
-            <div className="text-sm">
-              <div className="text-ice tracking-display text-xs">{p.product_key.toUpperCase()} · ${(p.amount_cents/100).toFixed(2)}</div>
-              <div className="mt-1">{p.full_name} — {p.email} — {p.phone}</div>
-              <div className="text-xs text-muted-foreground">CashApp: {p.cashapp_username} · {new Date(p.created_at).toLocaleString()}</div>
-              {p.admin_note && <div className="text-xs mt-1">Note: {p.admin_note}</div>}
+          <div key={p.id} className="border border-border rounded-lg p-4">
+            <div className="flex justify-between items-start gap-4">
+              <div className="text-sm flex-1">
+                <div className="text-ice tracking-display text-xs">{p.product_key.toUpperCase()} · ${(p.amount_cents/100).toFixed(2)}</div>
+                <div className="mt-1">{p.full_name} — {p.email} — {p.phone}</div>
+                <div className="text-xs text-muted-foreground">CashApp: {p.cashapp_username} · {new Date(p.created_at).toLocaleString()}</div>
+                {p.admin_note && <div className="text-xs mt-1">Note: {p.admin_note}</div>}
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <span className={`text-xs px-2 py-1 rounded-full ${p.status === "approved" ? "bg-emerald-500/20 text-emerald-300" : p.status === "rejected" ? "bg-red-500/20 text-red-300" : "bg-ice/20 text-ice"}`}>{p.status}</span>
+                {p.status === "pending" && (
+                  <div className="flex gap-2">
+                    <button onClick={() => decide(p.id, "approved")} className="text-xs px-3 py-1 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30">Approve</button>
+                    <button onClick={() => decide(p.id, "rejected")} className="text-xs px-3 py-1 rounded bg-red-500/20 text-red-300 hover:bg-red-500/30">Reject</button>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="flex flex-col items-end gap-2">
-              <span className={`text-xs px-2 py-1 rounded-full ${p.status === "approved" ? "bg-emerald-500/20 text-emerald-300" : p.status === "rejected" ? "bg-red-500/20 text-red-300" : "bg-ice/20 text-ice"}`}>{p.status}</span>
-              {p.status === "pending" && (
-                <div className="flex gap-2">
-                  <button onClick={() => decide(p.id, "approved")} className="text-xs px-3 py-1 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30">Approve</button>
-                  <button onClick={() => decide(p.id, "rejected")} className="text-xs px-3 py-1 rounded bg-red-500/20 text-red-300 hover:bg-red-500/30">Reject</button>
-                </div>
-              )}
+            <div className="mt-3 grid sm:grid-cols-2 gap-2 text-[11px] font-mono bg-black/30 border border-border rounded p-2">
+              <div><span className="text-ice">IP:</span> <span className="text-muted-foreground">{p.ip_address || "—"}</span></div>
+              <div><span className="text-ice">COUNTRY:</span> <span className="text-muted-foreground">{p.country || "—"}</span></div>
+              <div className="sm:col-span-2"><span className="text-ice">DEVICE:</span> <span className="text-muted-foreground">{p.device_info || "—"}</span></div>
+              <div className="sm:col-span-2 break-all"><span className="text-ice">USER-AGENT:</span> <span className="text-muted-foreground">{p.user_agent || "—"}</span></div>
+              <div className="sm:col-span-2"><span className="text-ice">USER ID:</span> <span className="text-muted-foreground">{p.user_id}</span></div>
             </div>
           </div>
         ))}
@@ -373,6 +413,52 @@ function Notifications() {
       <input placeholder="Target user_id (blank = everyone)" value={target} onChange={(e) => setTarget(e.target.value)} className="w-full bg-input/40 border border-border rounded px-3 py-2 text-sm mb-2" />
       <textarea placeholder="Message" value={msg} onChange={(e) => setMsg(e.target.value)} className="w-full bg-input/40 border border-border rounded px-3 py-2 text-sm min-h-24" />
       <button onClick={send} className="btn-ice mt-3">Broadcast</button>
+    </div>
+  );
+}
+
+function AdminMessages() {
+  const [rows, setRows] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<Record<string, string>>({});
+  const [filter, setFilter] = useState("");
+  const load = async () => {
+    const [{ data: m }, { data: p }] = await Promise.all([
+      supabase.from("direct_messages").select("*").order("created_at", { ascending: false }).limit(300),
+      supabase.from("profiles").select("id,username"),
+    ]);
+    setRows(m ?? []);
+    setProfiles(Object.fromEntries((p ?? []).map((x: any) => [x.id, x.username])));
+  };
+  useEffect(() => { load(); }, []);
+  const del = async (id: string) => { await supabase.from("direct_messages").delete().eq("id", id); load(); toast.success("Deleted"); };
+  const hide = async (id: string, hidden: boolean) => { await supabase.from("direct_messages").update({ hidden_by_admin: hidden }).eq("id", id); load(); };
+  const filtered = rows.filter((r) => {
+    if (!filter) return true;
+    const q = filter.toLowerCase();
+    return (profiles[r.sender_id] || "").toLowerCase().includes(q) || (profiles[r.recipient_id] || "").toLowerCase().includes(q) || r.content.toLowerCase().includes(q);
+  });
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-xs tracking-brand text-ice">XENOTEXT — ALL MESSAGES ({rows.length})</div>
+        <a href="/xenotext" target="_blank" className="btn-ghost-ice text-xs">Open XenoText →</a>
+      </div>
+      <input placeholder="Search by user or content…" value={filter} onChange={(e) => setFilter(e.target.value)} className="w-full bg-input/40 border border-border rounded px-3 py-2 text-sm mb-3" />
+      <div className="space-y-1 max-h-[60vh] overflow-y-auto">
+        {filtered.map((m) => (
+          <div key={m.id} className={`border border-border rounded p-2 text-sm flex justify-between items-start gap-3 ${m.hidden_by_admin ? "opacity-50" : ""}`}>
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] tracking-display text-muted-foreground">{profiles[m.sender_id] || m.sender_id.slice(0,8)} → {profiles[m.recipient_id] || m.recipient_id.slice(0,8)} · {new Date(m.created_at).toLocaleString()}</div>
+              <div className="break-words">{m.content}</div>
+            </div>
+            <div className="flex gap-1">
+              <button onClick={() => hide(m.id, !m.hidden_by_admin)} className="text-[10px] px-2 py-1 rounded bg-white/10 hover:bg-white/20">{m.hidden_by_admin ? "unhide" : "hide"}</button>
+              <button onClick={() => del(m.id)} className="text-[10px] px-2 py-1 rounded bg-red-500/20 text-red-300 hover:bg-red-500/30">delete</button>
+            </div>
+          </div>
+        ))}
+        {filtered.length === 0 && <div className="text-xs text-muted-foreground p-4 text-center">No messages.</div>}
+      </div>
     </div>
   );
 }
