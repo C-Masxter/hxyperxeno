@@ -416,3 +416,49 @@ function Notifications() {
     </div>
   );
 }
+
+function AdminMessages() {
+  const [rows, setRows] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<Record<string, string>>({});
+  const [filter, setFilter] = useState("");
+  const load = async () => {
+    const [{ data: m }, { data: p }] = await Promise.all([
+      supabase.from("direct_messages").select("*").order("created_at", { ascending: false }).limit(300),
+      supabase.from("profiles").select("id,username"),
+    ]);
+    setRows(m ?? []);
+    setProfiles(Object.fromEntries((p ?? []).map((x: any) => [x.id, x.username])));
+  };
+  useEffect(() => { load(); }, []);
+  const del = async (id: string) => { await supabase.from("direct_messages").delete().eq("id", id); load(); toast.success("Deleted"); };
+  const hide = async (id: string, hidden: boolean) => { await supabase.from("direct_messages").update({ hidden_by_admin: hidden }).eq("id", id); load(); };
+  const filtered = rows.filter((r) => {
+    if (!filter) return true;
+    const q = filter.toLowerCase();
+    return (profiles[r.sender_id] || "").toLowerCase().includes(q) || (profiles[r.recipient_id] || "").toLowerCase().includes(q) || r.content.toLowerCase().includes(q);
+  });
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-xs tracking-brand text-ice">XENOTEXT — ALL MESSAGES ({rows.length})</div>
+        <a href="/xenotext" target="_blank" className="btn-ghost-ice text-xs">Open XenoText →</a>
+      </div>
+      <input placeholder="Search by user or content…" value={filter} onChange={(e) => setFilter(e.target.value)} className="w-full bg-input/40 border border-border rounded px-3 py-2 text-sm mb-3" />
+      <div className="space-y-1 max-h-[60vh] overflow-y-auto">
+        {filtered.map((m) => (
+          <div key={m.id} className={`border border-border rounded p-2 text-sm flex justify-between items-start gap-3 ${m.hidden_by_admin ? "opacity-50" : ""}`}>
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] tracking-display text-muted-foreground">{profiles[m.sender_id] || m.sender_id.slice(0,8)} → {profiles[m.recipient_id] || m.recipient_id.slice(0,8)} · {new Date(m.created_at).toLocaleString()}</div>
+              <div className="break-words">{m.content}</div>
+            </div>
+            <div className="flex gap-1">
+              <button onClick={() => hide(m.id, !m.hidden_by_admin)} className="text-[10px] px-2 py-1 rounded bg-white/10 hover:bg-white/20">{m.hidden_by_admin ? "unhide" : "hide"}</button>
+              <button onClick={() => del(m.id)} className="text-[10px] px-2 py-1 rounded bg-red-500/20 text-red-300 hover:bg-red-500/30">delete</button>
+            </div>
+          </div>
+        ))}
+        {filtered.length === 0 && <div className="text-xs text-muted-foreground p-4 text-center">No messages.</div>}
+      </div>
+    </div>
+  );
+}
