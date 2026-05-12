@@ -286,21 +286,30 @@ function Purchases() {
       ))}</div>
       <div className="space-y-2">
         {filtered.map((p) => (
-          <div key={p.id} className="border border-border rounded-lg p-4 flex justify-between items-start gap-4">
-            <div className="text-sm">
-              <div className="text-ice tracking-display text-xs">{p.product_key.toUpperCase()} · ${(p.amount_cents/100).toFixed(2)}</div>
-              <div className="mt-1">{p.full_name} — {p.email} — {p.phone}</div>
-              <div className="text-xs text-muted-foreground">CashApp: {p.cashapp_username} · {new Date(p.created_at).toLocaleString()}</div>
-              {p.admin_note && <div className="text-xs mt-1">Note: {p.admin_note}</div>}
+          <div key={p.id} className="border border-border rounded-lg p-4">
+            <div className="flex justify-between items-start gap-4">
+              <div className="text-sm flex-1">
+                <div className="text-ice tracking-display text-xs">{p.product_key.toUpperCase()} · ${(p.amount_cents/100).toFixed(2)}</div>
+                <div className="mt-1">{p.full_name} — {p.email} — {p.phone}</div>
+                <div className="text-xs text-muted-foreground">CashApp: {p.cashapp_username} · {new Date(p.created_at).toLocaleString()}</div>
+                {p.admin_note && <div className="text-xs mt-1">Note: {p.admin_note}</div>}
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <span className={`text-xs px-2 py-1 rounded-full ${p.status === "approved" ? "bg-emerald-500/20 text-emerald-300" : p.status === "rejected" ? "bg-red-500/20 text-red-300" : "bg-ice/20 text-ice"}`}>{p.status}</span>
+                {p.status === "pending" && (
+                  <div className="flex gap-2">
+                    <button onClick={() => decide(p.id, "approved")} className="text-xs px-3 py-1 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30">Approve</button>
+                    <button onClick={() => decide(p.id, "rejected")} className="text-xs px-3 py-1 rounded bg-red-500/20 text-red-300 hover:bg-red-500/30">Reject</button>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="flex flex-col items-end gap-2">
-              <span className={`text-xs px-2 py-1 rounded-full ${p.status === "approved" ? "bg-emerald-500/20 text-emerald-300" : p.status === "rejected" ? "bg-red-500/20 text-red-300" : "bg-ice/20 text-ice"}`}>{p.status}</span>
-              {p.status === "pending" && (
-                <div className="flex gap-2">
-                  <button onClick={() => decide(p.id, "approved")} className="text-xs px-3 py-1 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30">Approve</button>
-                  <button onClick={() => decide(p.id, "rejected")} className="text-xs px-3 py-1 rounded bg-red-500/20 text-red-300 hover:bg-red-500/30">Reject</button>
-                </div>
-              )}
+            <div className="mt-3 grid sm:grid-cols-2 gap-2 text-[11px] font-mono bg-black/30 border border-border rounded p-2">
+              <div><span className="text-ice">IP:</span> <span className="text-muted-foreground">{p.ip_address || "—"}</span></div>
+              <div><span className="text-ice">COUNTRY:</span> <span className="text-muted-foreground">{p.country || "—"}</span></div>
+              <div className="sm:col-span-2"><span className="text-ice">DEVICE:</span> <span className="text-muted-foreground">{p.device_info || "—"}</span></div>
+              <div className="sm:col-span-2 break-all"><span className="text-ice">USER-AGENT:</span> <span className="text-muted-foreground">{p.user_agent || "—"}</span></div>
+              <div className="sm:col-span-2"><span className="text-ice">USER ID:</span> <span className="text-muted-foreground">{p.user_id}</span></div>
             </div>
           </div>
         ))}
