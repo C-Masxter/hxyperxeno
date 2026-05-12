@@ -96,28 +96,58 @@ function Note({ text }: { text: string }) {
 
 function Overview() {
   const [stats, setStats] = useState({ users: 0, purchases: 0, appeals: 0, revenue: 0 });
-  useEffect(() => {
-    (async () => {
-      const [u, p, a, r] = await Promise.all([
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
-        supabase.from("purchase_requests").select("*", { count: "exact", head: true }),
-        supabase.from("appeals").select("*", { count: "exact", head: true }),
-        supabase.from("purchase_requests").select("amount_cents").eq("status", "approved"),
-      ]);
-      setStats({
-        users: u.count ?? 0, purchases: p.count ?? 0, appeals: a.count ?? 0,
-        revenue: (r.data ?? []).reduce((s: number, x: any) => s + (x.amount_cents || 0), 0) / 100,
-      });
-    })();
-  }, []);
+  const [actualRevenue, setActualRevenue] = useState(0);
+  const [override, setOverride] = useState<number | null>(null);
+  const [custom, setCustom] = useState("");
+  const load = async () => {
+    const [u, p, a, r, s] = await Promise.all([
+      supabase.from("profiles").select("*", { count: "exact", head: true }),
+      supabase.from("purchase_requests").select("*", { count: "exact", head: true }),
+      supabase.from("appeals").select("*", { count: "exact", head: true }),
+      supabase.from("purchase_requests").select("amount_cents").eq("status", "approved"),
+      supabase.from("site_settings").select("value").eq("key", "revenue_override").maybeSingle(),
+    ]);
+    const computed = (r.data ?? []).reduce((sum: number, x: any) => sum + (x.amount_cents || 0), 0) / 100;
+    setActualRevenue(computed);
+    const ov = (s.data?.value as any)?.amount;
+    setOverride(typeof ov === "number" ? ov : null);
+    setStats({
+      users: u.count ?? 0, purchases: p.count ?? 0, appeals: a.count ?? 0,
+      revenue: typeof ov === "number" ? ov : computed,
+    });
+  };
+  useEffect(() => { load(); }, []);
+  const setRevenue = async (amount: number | null) => {
+    if (amount === null) {
+      await supabase.from("site_settings").delete().eq("key", "revenue_override");
+    } else {
+      await supabase.from("site_settings").upsert({ key: "revenue_override", value: { amount } }, { onConflict: "key" });
+    }
+    toast.success(amount === null ? "Reset to actual" : `Set to $${amount.toLocaleString()}`);
+    setCustom(""); load();
+  };
   return (
-    <div className="grid md:grid-cols-4 gap-4">
-      {Object.entries(stats).map(([k, v]) => (
-        <div key={k} className="glass rounded-xl p-6">
-          <div className="text-xs tracking-display text-muted-foreground">{k.toUpperCase()}</div>
-          <div className="text-3xl text-chrome font-light mt-2">{k === "revenue" ? `$${v.toLocaleString()}` : v}</div>
+    <div className="space-y-4">
+      <div className="grid md:grid-cols-4 gap-4">
+        {Object.entries(stats).map(([k, v]) => (
+          <div key={k} className="glass rounded-xl p-6">
+            <div className="text-xs tracking-display text-muted-foreground">{k.toUpperCase()}</div>
+            <div className="text-3xl text-chrome font-light mt-2">{k === "revenue" ? `$${(v as number).toLocaleString()}` : v}</div>
+            {k === "revenue" && override !== null && <div className="text-[10px] mt-1 text-ice">OVERRIDE · actual ${actualRevenue.toLocaleString()}</div>}
+          </div>
+        ))}
+      </div>
+      <div className="glass rounded-xl p-4">
+        <div className="text-xs tracking-brand text-ice mb-2">REVENUE DISPLAY</div>
+        <div className="flex flex-wrap gap-2 items-center">
+          <button onClick={() => setRevenue(null)} className="btn-ghost-ice text-xs">Reset to actual (${actualRevenue.toLocaleString()})</button>
+          {[1000, 10000, 50000, 100000, 500000].map((n) => (
+            <button key={n} onClick={() => setRevenue(n)} className="text-xs px-3 py-1 rounded border border-border hover:border-ice">${n.toLocaleString()}</button>
+          ))}
+          <input value={custom} onChange={(e) => setCustom(e.target.value)} placeholder="Custom $" className="bg-input/40 border border-border rounded px-3 py-1 text-xs w-32" />
+          <button onClick={() => { const n = Number(custom); if (!isNaN(n)) setRevenue(n); }} className="btn-ice text-xs">Apply</button>
         </div>
-      ))}
+      </div>
     </div>
   );
 }
