@@ -20,6 +20,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as NewsRouteImport } from './routes/news'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as HyperxenoAiRouteImport } from './routes/hyperxeno-ai'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as DownloadsRouteImport } from './routes/downloads'
@@ -89,6 +90,11 @@ const NewsRoute = NewsRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HyperxenoAiRoute = HyperxenoAiRouteImport.update({
+  id: '/hyperxeno-ai',
+  path: '/hyperxeno-ai',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeaturesRoute = FeaturesRouteImport.update({
@@ -182,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/downloads': typeof DownloadsRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
+  '/hyperxeno-ai': typeof HyperxenoAiRoute
   '/login': typeof LoginRoute
   '/news': typeof NewsRoute
   '/pricing': typeof PricingRoute
@@ -210,6 +217,7 @@ export interface FileRoutesByTo {
   '/downloads': typeof DownloadsRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
+  '/hyperxeno-ai': typeof HyperxenoAiRoute
   '/login': typeof LoginRoute
   '/news': typeof NewsRoute
   '/pricing': typeof PricingRoute
@@ -239,6 +247,7 @@ export interface FileRoutesById {
   '/downloads': typeof DownloadsRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
+  '/hyperxeno-ai': typeof HyperxenoAiRoute
   '/login': typeof LoginRoute
   '/news': typeof NewsRoute
   '/pricing': typeof PricingRoute
@@ -269,6 +278,7 @@ export interface FileRouteTypes {
     | '/downloads'
     | '/faq'
     | '/features'
+    | '/hyperxeno-ai'
     | '/login'
     | '/news'
     | '/pricing'
@@ -297,6 +307,7 @@ export interface FileRouteTypes {
     | '/downloads'
     | '/faq'
     | '/features'
+    | '/hyperxeno-ai'
     | '/login'
     | '/news'
     | '/pricing'
@@ -325,6 +336,7 @@ export interface FileRouteTypes {
     | '/downloads'
     | '/faq'
     | '/features'
+    | '/hyperxeno-ai'
     | '/login'
     | '/news'
     | '/pricing'
@@ -354,6 +366,7 @@ export interface RootRouteChildren {
   DownloadsRoute: typeof DownloadsRoute
   FaqRoute: typeof FaqRoute
   FeaturesRoute: typeof FeaturesRoute
+  HyperxenoAiRoute: typeof HyperxenoAiRoute
   LoginRoute: typeof LoginRoute
   NewsRoute: typeof NewsRoute
   PricingRoute: typeof PricingRoute
@@ -445,6 +458,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hyperxeno-ai': {
+      id: '/hyperxeno-ai'
+      path: '/hyperxeno-ai'
+      fullPath: '/hyperxeno-ai'
+      preLoaderRoute: typeof HyperxenoAiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/features': {
@@ -570,6 +590,7 @@ const rootRouteChildren: RootRouteChildren = {
   DownloadsRoute: DownloadsRoute,
   FaqRoute: FaqRoute,
   FeaturesRoute: FeaturesRoute,
+  HyperxenoAiRoute: HyperxenoAiRoute,
   LoginRoute: LoginRoute,
   NewsRoute: NewsRoute,
   PricingRoute: PricingRoute,

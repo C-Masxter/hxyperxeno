@@ -9,7 +9,7 @@ const NAV = [
   { to: "/products", label: "Products" },
   { to: "/pricing", label: "Pricing" },
   { to: "/security", label: "Security" },
-  { to: "/docs", label: "Docs" },
+  { to: "/hyperxeno-ai", label: "HyperXeno AI" },
   { to: "/news", label: "News" },
 ];
 
