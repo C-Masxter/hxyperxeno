@@ -34,6 +34,7 @@ import { Route as AppealsRouteImport } from './routes/appeals'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiHyperxenoAiRouteImport } from './routes/api/hyperxeno-ai'
 
 const XenotextRoute = XenotextRouteImport.update({
   id: '/xenotext',
@@ -160,6 +161,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHyperxenoAiRoute = ApiHyperxenoAiRouteImport.update({
+  id: '/api/hyperxeno-ai',
+  path: '/api/hyperxeno-ai',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/system-status': typeof SystemStatusRoute
   '/terms': typeof TermsRoute
   '/xenotext': typeof XenotextRoute
+  '/api/hyperxeno-ai': typeof ApiHyperxenoAiRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -214,6 +221,7 @@ export interface FileRoutesByTo {
   '/system-status': typeof SystemStatusRoute
   '/terms': typeof TermsRoute
   '/xenotext': typeof XenotextRoute
+  '/api/hyperxeno-ai': typeof ApiHyperxenoAiRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -242,6 +250,7 @@ export interface FileRoutesById {
   '/system-status': typeof SystemStatusRoute
   '/terms': typeof TermsRoute
   '/xenotext': typeof XenotextRoute
+  '/api/hyperxeno-ai': typeof ApiHyperxenoAiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -271,6 +280,7 @@ export interface FileRouteTypes {
     | '/system-status'
     | '/terms'
     | '/xenotext'
+    | '/api/hyperxeno-ai'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -298,6 +308,7 @@ export interface FileRouteTypes {
     | '/system-status'
     | '/terms'
     | '/xenotext'
+    | '/api/hyperxeno-ai'
   id:
     | '__root__'
     | '/'
@@ -325,6 +336,7 @@ export interface FileRouteTypes {
     | '/system-status'
     | '/terms'
     | '/xenotext'
+    | '/api/hyperxeno-ai'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -353,6 +365,7 @@ export interface RootRouteChildren {
   SystemStatusRoute: typeof SystemStatusRoute
   TermsRoute: typeof TermsRoute
   XenotextRoute: typeof XenotextRoute
+  ApiHyperxenoAiRoute: typeof ApiHyperxenoAiRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -532,6 +545,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/hyperxeno-ai': {
+      id: '/api/hyperxeno-ai'
+      path: '/api/hyperxeno-ai'
+      fullPath: '/api/hyperxeno-ai'
+      preLoaderRoute: typeof ApiHyperxenoAiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -561,7 +581,18 @@ const rootRouteChildren: RootRouteChildren = {
   SystemStatusRoute: SystemStatusRoute,
   TermsRoute: TermsRoute,
   XenotextRoute: XenotextRoute,
+  ApiHyperxenoAiRoute: ApiHyperxenoAiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
