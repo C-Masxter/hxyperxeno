@@ -24,7 +24,7 @@ export function IntroLoader({ duration = 2600, label = "INITIALIZING DEFENSE GRI
         ))}
       </div>
       <div className="absolute bottom-12 text-xs tracking-brand text-muted-foreground" style={{ animation: "fade-up 1s 1.8s both" }}>
-        INITIALIZING DEFENSE GRID
+        {label}
       </div>
     </div>
   );
