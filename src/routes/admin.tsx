@@ -11,6 +11,7 @@ const TAB_GROUPS: { group: string; tabs: string[] }[] = [
   { group: "Dashboard", tabs: ["Overview"] },
   { group: "Content", tabs: ["Visual Editor", "CMS Editor", "News", "Announcements", "Changelog", "FAQ", "Documentation"] },
   { group: "Commerce", tabs: ["Products", "Pricing", "Downloads", "Purchases", "Payment Methods"] },
+  { group: "HyperXeno AI", tabs: ["AI Upgrades", "AI Flagged Reports", "AI Credits"] },
   { group: "Users", tabs: ["Users", "Roles", "Appeals", "Notifications", "Community", "XenoText"] },
   { group: "System", tabs: ["System Status", "Site Settings", "IP Blocklist", "Sessions", "Email Templates"] },
   { group: "Logs", tabs: ["Audit Logs", "Security Logs"] },
@@ -86,6 +87,9 @@ function Tab({ name }: { name: string }) {
     case "Sessions": return <Note text="Active sessions appear here. Force-logout uses Supabase Auth admin API (server-side)." />;
     case "Email Templates": return <Note text="Email is disabled in this build. Templates are UI-only stubs." />;
     case "Documentation": return <CmsEditor pageFilter="docs" />;
+    case "AI Upgrades": return <AiUpgrades />;
+    case "AI Flagged Reports": return <AiFlagged />;
+    case "AI Credits": return <AiCreditsAdmin />;
   }
   return null;
 }
@@ -459,6 +463,155 @@ function AdminMessages() {
         ))}
         {filtered.length === 0 && <div className="text-xs text-muted-foreground p-4 text-center">No messages.</div>}
       </div>
+    </div>
+  );
+}
+
+const AI_TIER_DAILY: Record<string, number> = { free: 10, basic: 50, pro: 200, entrepreneur: 1000 };
+
+function AiUpgrades() {
+  const [rows, setRows] = useState<any[]>([]);
+  const [filter, setFilter] = useState("all");
+  const load = () => supabase.from("ai_upgrade_requests").select("*").order("created_at", { ascending: false }).then(({ data }) => setRows(data ?? []));
+  useEffect(() => { load(); }, []);
+  const decide = async (r: any, status: string) => {
+    const note = prompt("Admin note (optional):") ?? "";
+    await supabase.from("ai_upgrade_requests").update({ status, admin_note: note }).eq("id", r.id);
+    if (status === "approved") {
+      const daily = AI_TIER_DAILY[r.tier] ?? 10;
+      // upsert credits with new tier and topped balance
+      const { data: existing } = await supabase.from("ai_credits").select("balance").eq("user_id", r.user_id).maybeSingle();
+      const newBal = Math.max(Number(existing?.balance ?? 0), daily);
+      await supabase.from("ai_credits").upsert({ user_id: r.user_id, tier: r.tier, daily_allowance: daily, balance: newBal, last_reset: new Date().toISOString() }, { onConflict: "user_id" });
+      await supabase.from("notifications").insert({ user_id: r.user_id, message: `🚀 HyperXeno AI tier upgraded to ${r.tier.toUpperCase()} — ${daily} daily credits unlocked.` });
+    } else if (r.user_id) {
+      await supabase.from("notifications").insert({ user_id: r.user_id, message: `HyperXeno AI upgrade ${status}${note ? ` — ${note}` : ""}` });
+    }
+    toast.success(status); load();
+  };
+  const filtered = filter === "all" ? rows : rows.filter((r) => r.status === filter);
+  return (
+    <div>
+      <div className="text-xs tracking-brand text-ice mb-3">HYPERXENO AI · UPGRADE QUEUE</div>
+      <div className="flex gap-2 mb-3">{["all","pending","approved","rejected"].map((f) => (
+        <button key={f} onClick={() => setFilter(f)} className={`text-xs px-3 py-1 rounded-full border ${filter === f ? "bg-ice text-black border-ice" : "border-border text-muted-foreground"}`}>{f}</button>
+      ))}</div>
+      <div className="space-y-2">
+        {filtered.map((p) => (
+          <div key={p.id} className="border border-border rounded-lg p-4">
+            <div className="flex justify-between items-start gap-4">
+              <div className="text-sm flex-1">
+                <div className="text-ice tracking-display text-xs">{p.tier.toUpperCase()} TIER · ${(p.amount_cents/100).toFixed(2)}</div>
+                <div className="mt-1">{p.full_name} — {p.email}</div>
+                <div className="text-xs text-muted-foreground">CashApp: {p.cashapp_username} · {new Date(p.created_at).toLocaleString()}</div>
+                {p.admin_note && <div className="text-xs mt-1">Note: {p.admin_note}</div>}
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <span className={`text-xs px-2 py-1 rounded-full ${p.status === "approved" ? "bg-emerald-500/20 text-emerald-300" : p.status === "rejected" ? "bg-red-500/20 text-red-300" : "bg-ice/20 text-ice"}`}>{p.status}</span>
+                {p.status === "pending" && (
+                  <div className="flex gap-2">
+                    <button onClick={() => decide(p, "approved")} className="text-xs px-3 py-1 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30">Approve</button>
+                    <button onClick={() => decide(p, "rejected")} className="text-xs px-3 py-1 rounded bg-red-500/20 text-red-300 hover:bg-red-500/30">Reject</button>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="mt-3 grid sm:grid-cols-2 gap-2 text-[11px] font-mono bg-black/30 border border-border rounded p-2">
+              <div><span className="text-ice">IP:</span> <span className="text-muted-foreground">{p.ip_address || "—"}</span></div>
+              <div><span className="text-ice">USER ID:</span> <span className="text-muted-foreground">{p.user_id}</span></div>
+              <div className="sm:col-span-2"><span className="text-ice">DEVICE:</span> <span className="text-muted-foreground">{p.device_info || "—"}</span></div>
+              <div className="sm:col-span-2 break-all"><span className="text-ice">USER-AGENT:</span> <span className="text-muted-foreground">{p.user_agent || "—"}</span></div>
+            </div>
+          </div>
+        ))}
+        {filtered.length === 0 && <div className="text-xs text-muted-foreground p-4 text-center">No requests.</div>}
+      </div>
+    </div>
+  );
+}
+
+function AiFlagged() {
+  const [rows, setRows] = useState<any[]>([]);
+  const [filter, setFilter] = useState("unreviewed");
+  const load = () => supabase.from("ai_flagged_reports").select("*").order("created_at", { ascending: false }).then(({ data }) => setRows(data ?? []));
+  useEffect(() => { load(); }, []);
+  const mark = async (id: string, reviewed: boolean) => { await supabase.from("ai_flagged_reports").update({ reviewed }).eq("id", id); load(); };
+  const del = async (id: string) => { await supabase.from("ai_flagged_reports").delete().eq("id", id); load(); };
+  const filtered = filter === "all" ? rows : filter === "reviewed" ? rows.filter((r) => r.reviewed) : rows.filter((r) => !r.reviewed);
+  return (
+    <div>
+      <div className="text-xs tracking-brand text-red-400 mb-3">⚠ HYPERXENO AI · FLAGGED REQUESTS — {rows.filter(r => !r.reviewed).length} unreviewed</div>
+      <div className="flex gap-2 mb-3">{["unreviewed","reviewed","all"].map((f) => (
+        <button key={f} onClick={() => setFilter(f)} className={`text-xs px-3 py-1 rounded-full border ${filter === f ? "bg-ice text-black border-ice" : "border-border text-muted-foreground"}`}>{f}</button>
+      ))}</div>
+      <div className="space-y-2 max-h-[70vh] overflow-y-auto">
+        {filtered.map((r) => (
+          <div key={r.id} className={`border rounded-lg p-3 ${r.reviewed ? "border-border opacity-60" : "border-red-500/30 bg-red-500/5"}`}>
+            <div className="flex justify-between items-start gap-2">
+              <div className="text-[10px] tracking-display text-muted-foreground">
+                <span className="text-ice">{r.username || r.user_id?.slice(0,8) || "anon"}</span> · {new Date(r.created_at).toLocaleString()} · <span className="text-red-300">{r.reason}</span>
+              </div>
+              <div className="flex gap-1">
+                <button onClick={() => mark(r.id, !r.reviewed)} className="text-[10px] px-2 py-0.5 rounded bg-white/10 hover:bg-white/20">{r.reviewed ? "unmark" : "mark reviewed"}</button>
+                <button onClick={() => del(r.id)} className="text-[10px] px-2 py-0.5 rounded bg-red-500/20 text-red-300">delete</button>
+              </div>
+            </div>
+            <div className="mt-2 text-sm bg-black/40 rounded p-2 break-words">{r.content}</div>
+          </div>
+        ))}
+        {filtered.length === 0 && <div className="text-xs text-muted-foreground p-4 text-center">No flagged requests.</div>}
+      </div>
+    </div>
+  );
+}
+
+function AiCreditsAdmin() {
+  const [rows, setRows] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<Record<string, string>>({});
+  const load = async () => {
+    const [{ data: c }, { data: p }] = await Promise.all([
+      supabase.from("ai_credits").select("*").order("updated_at", { ascending: false }),
+      supabase.from("profiles").select("id,username"),
+    ]);
+    setRows(c ?? []);
+    setProfiles(Object.fromEntries((p ?? []).map((x: any) => [x.id, x.username])));
+  };
+  useEffect(() => { load(); }, []);
+  const setTier = async (uid: string, tier: string) => {
+    const daily = AI_TIER_DAILY[tier] ?? 10;
+    await supabase.from("ai_credits").upsert({ user_id: uid, tier, daily_allowance: daily, balance: daily, last_reset: new Date().toISOString() }, { onConflict: "user_id" });
+    toast.success(`Tier set to ${tier}`); load();
+  };
+  const topUp = async (uid: string) => {
+    const v = Number(prompt("Add credits:") || 0);
+    if (!v) return;
+    const r = rows.find((x) => x.user_id === uid);
+    await supabase.from("ai_credits").update({ balance: Number(r?.balance ?? 0) + v }).eq("user_id", uid);
+    load();
+  };
+  return (
+    <div>
+      <div className="text-xs tracking-brand text-ice mb-3">AI CREDITS · USERS ({rows.length})</div>
+      <div className="overflow-x-auto"><table className="w-full text-sm">
+        <thead className="text-xs tracking-display text-muted-foreground"><tr>
+          <th className="text-left p-2">USER</th><th className="text-left p-2">TIER</th><th className="text-left p-2">BALANCE</th><th className="text-left p-2">DAILY</th><th className="text-left p-2">LAST RESET</th><th />
+        </tr></thead>
+        <tbody>{rows.map((r) => (
+          <tr key={r.user_id} className="border-t border-border">
+            <td className="p-2">{profiles[r.user_id] || r.user_id.slice(0,8)}</td>
+            <td className="p-2"><span className="text-ice">{r.tier}</span></td>
+            <td className="p-2 text-chrome">{Number(r.balance).toFixed(1)}</td>
+            <td className="p-2 text-muted-foreground">{r.daily_allowance}</td>
+            <td className="p-2 text-xs text-muted-foreground">{new Date(r.last_reset).toLocaleString()}</td>
+            <td className="p-2"><div className="flex gap-1 flex-wrap">
+              {["free","basic","pro","entrepreneur"].map((t) => (
+                <button key={t} onClick={() => setTier(r.user_id, t)} className="text-[10px] px-2 py-0.5 rounded border border-border hover:border-ice">{t}</button>
+              ))}
+              <button onClick={() => topUp(r.user_id)} className="text-[10px] px-2 py-0.5 rounded bg-ice/20 text-ice">+credits</button>
+            </div></td>
+          </tr>
+        ))}</tbody>
+      </table></div>
     </div>
   );
 }

@@ -14,6 +14,176 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_credits: {
+        Row: {
+          balance: number
+          daily_allowance: number
+          last_reset: string
+          tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          daily_allowance?: number
+          last_reset?: string
+          tier?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          daily_allowance?: number
+          last_reset?: string
+          tier?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_flagged_reports: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          reason: string
+          reviewed: boolean
+          user_id: string | null
+          username: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          reason: string
+          reviewed?: boolean
+          user_id?: string | null
+          username?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          reason?: string
+          reviewed?: boolean
+          user_id?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+      ai_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          cost: number
+          created_at: string
+          id: string
+          mode: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          cost?: number
+          created_at?: string
+          id?: string
+          mode?: string | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          cost?: number
+          created_at?: string
+          id?: string
+          mode?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_upgrade_requests: {
+        Row: {
+          admin_note: string | null
+          amount_cents: number
+          cashapp_username: string
+          created_at: string
+          device_info: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          ip_address: string | null
+          status: string
+          tier: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          amount_cents: number
+          cashapp_username: string
+          created_at?: string
+          device_info?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          ip_address?: string | null
+          status?: string
+          tier: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          amount_cents?: number
+          cashapp_username?: string
+          created_at?: string
+          device_info?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          ip_address?: string | null
+          status?: string
+          tier?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
           active: boolean

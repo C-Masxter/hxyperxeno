@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 
-export function IntroLoader() {
+export function IntroLoader({ duration = 2600, label = "INITIALIZING DEFENSE GRID", forceKey }: { duration?: number; label?: string; forceKey?: string | number } = {}) {
   const [done, setDone] = useState(typeof window === "undefined");
   useEffect(() => {
-    if (done) return;
-    const t = setTimeout(() => setDone(true), 2600);
+    setDone(false);
+    const t = setTimeout(() => setDone(true), duration);
     return () => clearTimeout(t);
-  }, [done]);
+  }, [duration, forceKey]);
   if (done) return null;
   const letters = "HYPERXENO".split("");
   return (
@@ -24,7 +24,7 @@ export function IntroLoader() {
         ))}
       </div>
       <div className="absolute bottom-12 text-xs tracking-brand text-muted-foreground" style={{ animation: "fade-up 1s 1.8s both" }}>
-        INITIALIZING DEFENSE GRID
+        {label}
       </div>
     </div>
   );
