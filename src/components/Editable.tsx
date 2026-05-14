@@ -31,6 +31,8 @@ export function Editable({ page, section, fallback = "", as: Tag = "span", class
     const next = ref.current.textContent ?? "";
     setEditing(false);
     if (next === text) return;
+    // Update DOM immediately so it never flashes back to the old value.
+    if (ref.current) ref.current.textContent = next;
     try {
       await saveSection(page, section, next);
       toast.success("Saved");

@@ -3,8 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/auth";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
+import { getPrice } from "@/lib/prices";
 
 export function PurchaseModal({ product, onClose }: { product: any; onClose: () => void }) {
+  const finalPrice = getPrice(product.product_key, product.price_cents);
+  const finalCents = Math.round(finalPrice * 100);
   const { userId } = useSession();
   const nav = useNavigate();
   const [form, setForm] = useState({ full_name: "", email: "", phone: "", cashapp_username: "" });
@@ -23,7 +26,7 @@ export function PurchaseModal({ product, onClose }: { product: any; onClose: () 
       ? `${navigator.platform || "?"} · ${(navigator as any).language || ""} · ${window.screen.width}x${window.screen.height}`
       : "";
     const { error } = await supabase.from("purchase_requests").insert({
-      user_id: userId, product_key: product.product_key, amount_cents: product.price_cents,
+      user_id: userId, product_key: product.product_key, amount_cents: finalCents,
       ip_address: ip, user_agent: ua, device_info: device,
       ...form,
     });
@@ -38,10 +41,10 @@ export function PurchaseModal({ product, onClose }: { product: any; onClose: () 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-in fade-in" onClick={onClose}>
       <div className="glass-strong rounded-2xl max-w-lg w-full p-8" onClick={(e) => e.stopPropagation()}>
         <div className="text-xs tracking-brand text-ice mb-2">PURCHASE</div>
-        <div className="text-2xl font-light">{product.name} — ${(product.price_cents/100).toFixed(2)}</div>
+        <div className="text-2xl font-light">{product.name} — ${finalPrice.toFixed(2)}</div>
         <div className="mt-6 rounded-lg border border-ice/30 bg-ice/5 p-4">
           <div className="text-xs tracking-display text-ice">PAYMENT INSTRUCTION</div>
-          <div className="mt-2 text-sm">Send <span className="text-chrome font-medium">${(product.price_cents/100).toFixed(2)}</span> via CashApp to <span className="text-ice font-medium">$CMasxter</span></div>
+          <div className="mt-2 text-sm">Send <span className="text-chrome font-medium">${finalPrice.toFixed(2)}</span> via CashApp to <span className="text-ice font-medium">$CMasxter</span></div>
           <div className="mt-2 text-xs text-muted-foreground">An admin will manually verify and unlock your access.</div>
         </div>
         <form onSubmit={submit} className="mt-6 space-y-3">

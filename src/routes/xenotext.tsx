@@ -56,15 +56,17 @@ function Page() {
     })();
   }, [userId, messages.length]);
 
-  // Subscribe to new messages → update active thread + global toast already handled in AdminDMPopup
+  // Subscribe to new messages → update active thread (with dedupe to prevent double-send glitch)
   useEffect(() => {
     if (!userId) return;
-    const ch = supabase.channel(`dm-thread-${userId}`)
+    const ch = supabase.channel(`dm-thread-${userId}-${active?.id ?? "none"}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "direct_messages" }, (payload: any) => {
         const m = payload.new as DM;
         if (!active) return;
         const isThread = (m.sender_id === userId && m.recipient_id === active.id) || (m.sender_id === active.id && m.recipient_id === userId);
-        if (isThread) setMessages((prev) => [...prev, m]);
+        if (!isThread) return;
+        // Dedupe — our own sends already arrive via .insert().select() return value.
+        setMessages((prev) => prev.some((x) => x.id === m.id) ? prev : [...prev, m]);
       })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
@@ -88,10 +90,11 @@ function Page() {
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages.length]);
 
+  // Search-only user discovery: only show users matching search query (no "browse all")
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return profiles;
-    return profiles.filter((p) => p.username.toLowerCase().includes(q) || (p.display_name || "").toLowerCase().includes(q));
+    if (!q) return [];
+    return profiles.filter((p) => p.username.toLowerCase().includes(q) || (p.display_name || "").toLowerCase().includes(q)).slice(0, 30);
   }, [profiles, search]);
 
   const recentProfiles = useMemo(() => recents.map((id) => profiles.find((p) => p.id === id)).filter(Boolean) as Profile[], [recents, profiles]);
@@ -100,11 +103,17 @@ function Page() {
     if (!userId || !active || !text.trim()) return;
     const content = text.trim();
     setText("");
-    const optimistic: DM = { id: `tmp-${Date.now()}`, sender_id: userId, recipient_id: active.id, content, created_at: new Date().toISOString(), read: false, hidden_by_admin: false };
+    const tmpId = `tmp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const optimistic: DM = { id: tmpId, sender_id: userId, recipient_id: active.id, content, created_at: new Date().toISOString(), read: false, hidden_by_admin: false };
     setMessages((m) => [...m, optimistic]);
     const { error, data } = await supabase.from("direct_messages").insert({ sender_id: userId, recipient_id: active.id, content }).select().single();
-    if (error) { toast.error(error.message); setMessages((m) => m.filter((x) => x.id !== optimistic.id)); return; }
-    setMessages((m) => m.map((x) => x.id === optimistic.id ? (data as DM) : x));
+    if (error) { toast.error(error.message); setMessages((m) => m.filter((x) => x.id !== tmpId)); return; }
+    // Replace temp with real row (and dedupe in case realtime already added it).
+    setMessages((m) => {
+      const withoutTmp = m.filter((x) => x.id !== tmpId);
+      if (withoutTmp.some((x) => x.id === (data as DM).id)) return withoutTmp;
+      return [...withoutTmp, data as DM];
+    });
   };
 
   const adminDelete = async (id: string) => {
@@ -140,11 +149,18 @@ function Page() {
               <>
                 <div className="text-[10px] tracking-brand text-ice/70 px-2 pt-1">RECENT</div>
                 {recentProfiles.map((p) => <UserRow key={`r-${p.id}`} p={p} active={active?.id === p.id} isAdmin={adminIds.has(p.id)} onClick={() => setActive(p)} />)}
-                <div className="text-[10px] tracking-brand text-ice/70 px-2 pt-3">ALL USERS</div>
               </>
             )}
-            {filtered.map((p) => <UserRow key={p.id} p={p} active={active?.id === p.id} isAdmin={adminIds.has(p.id)} onClick={() => setActive(p)} />)}
-            {filtered.length === 0 && <div className="text-xs text-muted-foreground p-3">No users found.</div>}
+            {!search && recentProfiles.length === 0 && (
+              <div className="text-xs text-muted-foreground p-3">Search for a user above to start a conversation.</div>
+            )}
+            {search && (
+              <>
+                <div className="text-[10px] tracking-brand text-ice/70 px-2 pt-1">SEARCH RESULTS</div>
+                {filtered.map((p) => <UserRow key={p.id} p={p} active={active?.id === p.id} isAdmin={adminIds.has(p.id)} onClick={() => setActive(p)} />)}
+                {filtered.length === 0 && <div className="text-xs text-muted-foreground p-3">No users match "{search}".</div>}
+              </>
+            )}
           </div>
         </aside>
 
