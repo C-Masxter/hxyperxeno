@@ -43,6 +43,23 @@ function Page() {
     setMessages((data ?? []).map((m: any) => ({ role: m.role, content: m.content, mode: m.mode, cost: Number(m.cost) })));
   };
   const newChat = () => { setConvId(null); setMessages([]); };
+  const deleteConv = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Delete this conversation? This cannot be undone.")) return;
+    await supabase.from("ai_messages").delete().eq("conversation_id", id);
+    await supabase.from("ai_conversations").delete().eq("id", id);
+    if (convId === id) newChat();
+    loadConversations();
+    toast.success("Conversation deleted");
+  };
+  const renameConv = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const c = conversations.find((x) => x.id === id);
+    const next = prompt("Rename conversation:", c?.title || "");
+    if (!next) return;
+    await supabase.from("ai_conversations").update({ title: next }).eq("id", id);
+    loadConversations();
+  };
 
   useEffect(() => { if (userId) { refreshCredits(); loadConversations(); } }, [userId]);
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }); }, [messages, busy]);
@@ -106,7 +123,11 @@ function Page() {
               <div className="text-[10px] tracking-brand text-ice/70 px-2 pb-1">CONVERSATIONS</div>
               {conversations.length === 0 && <div className="text-xs text-muted-foreground px-2">No history yet</div>}
               {conversations.map((c) => (
-                <button key={c.id} onClick={() => loadConv(c.id)} className={`w-full text-left px-2 py-1.5 rounded text-xs truncate ${convId === c.id ? "bg-ice/15 text-ice" : "text-muted-foreground hover:bg-white/5"}`}>{c.title || "Untitled"}</button>
+                <div key={c.id} className={`group w-full px-2 py-1.5 rounded text-xs flex items-center gap-1 ${convId === c.id ? "bg-ice/15 text-ice" : "text-muted-foreground hover:bg-white/5"}`}>
+                  <button onClick={() => loadConv(c.id)} className="flex-1 text-left truncate">{c.title || "Untitled"}</button>
+                  <button onClick={(e) => renameConv(c.id, e)} title="Rename" className="opacity-0 group-hover:opacity-100 text-[10px] hover:text-ice px-1">✎</button>
+                  <button onClick={(e) => deleteConv(c.id, e)} title="Delete" className="opacity-0 group-hover:opacity-100 text-[10px] hover:text-red-400 px-1">✕</button>
+                </div>
               ))}
             </div>
           </aside>
@@ -207,9 +228,11 @@ function parseBlocks(content: string): Block[] {
 }
 
 function Markdown({ text }: { text: string }) {
-  // lightweight: bold, headers, line breaks, inline code, links
+  // lightweight: bold, headers, line breaks, inline code, links, images
   const html = text
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, '<img src="$2" alt="$1" class="max-w-full rounded-lg my-2 border border-border" loading="lazy" />')
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener" class="text-ice underline hover:text-chrome">$1</a>')
     .replace(/^### (.+)$/gm, '<div class="text-base font-medium text-ice mt-2">$1</div>')
     .replace(/^## (.+)$/gm, '<div class="text-lg font-medium text-chrome mt-3">$1</div>')
     .replace(/^# (.+)$/gm, '<div class="text-xl font-light text-ice mt-3">$1</div>')
@@ -222,32 +245,48 @@ function Markdown({ text }: { text: string }) {
 }
 
 function CodeBlock({ lang, filename, code }: { lang: string; filename?: string; code: string }) {
-  const [tab, setTab] = useState<"code" | "preview">("code");
   const isHtml = /^html?$/i.test(lang) || /<\s*html[\s>]/i.test(code) || /<!doctype/i.test(code);
+  // Default to PREVIEW tab when HTML so the user immediately sees the render.
+  const [tab, setTab] = useState<"code" | "preview">(isHtml ? "preview" : "code");
   const previewSrc = useMemo(() => {
     if (!isHtml) return "";
     const watermark = `<div style="position:fixed;bottom:8px;right:10px;font:10px/1.2 system-ui;color:#7dd3fc;background:rgba(0,0,0,.6);padding:4px 8px;border-radius:6px;z-index:99999;backdrop-filter:blur(4px);border:1px solid rgba(125,211,252,.3);">⚡ Built with Xeno AI</div>`;
     if (/<\/body>/i.test(code)) return code.replace(/<\/body>/i, watermark + "</body>");
     return code + watermark;
   }, [code, isHtml]);
+  const downloadHtml = () => {
+    const blob = new Blob([previewSrc || code], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = filename || "xeno-ai-project.html"; a.click();
+    URL.revokeObjectURL(url);
+  };
+  const openInNewTab = () => {
+    const blob = new Blob([previewSrc || code], { type: "text/html" });
+    window.open(URL.createObjectURL(blob), "_blank");
+  };
   return (
     <div className="border border-border rounded-lg overflow-hidden bg-black/50">
-      <div className="flex items-center justify-between px-3 py-1.5 bg-black/40 border-b border-border">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-black/40 border-b border-border flex-wrap gap-1">
         <div className="text-[10px] tracking-display text-ice">
           {filename ? <span className="text-chrome">{filename}</span> : <span>{lang || "code"}</span>}
         </div>
-        <div className="flex gap-1">
+        <div className="flex gap-1 flex-wrap">
           {isHtml && (
             <>
-              <button onClick={() => setTab("code")} className={`text-[10px] px-2 py-0.5 rounded ${tab === "code" ? "bg-ice text-black" : "text-muted-foreground hover:text-ice"}`}>Code</button>
               <button onClick={() => setTab("preview")} className={`text-[10px] px-2 py-0.5 rounded ${tab === "preview" ? "bg-ice text-black" : "text-muted-foreground hover:text-ice"}`}>👁 Preview</button>
+              <button onClick={() => setTab("code")} className={`text-[10px] px-2 py-0.5 rounded ${tab === "code" ? "bg-ice text-black" : "text-muted-foreground hover:text-ice"}`}>{"</>"} Code</button>
+              <button onClick={openInNewTab} className="text-[10px] px-2 py-0.5 rounded text-muted-foreground hover:text-ice">↗ Open</button>
+              <button onClick={downloadHtml} className="text-[10px] px-2 py-0.5 rounded text-muted-foreground hover:text-ice">⬇ HTML</button>
             </>
           )}
-          <button onClick={() => { navigator.clipboard.writeText(code); toast.success("Copied"); }} className="text-[10px] px-2 py-0.5 rounded text-muted-foreground hover:text-ice">Copy</button>
+          <button onClick={() => { navigator.clipboard.writeText(code); toast.success("Copied"); }} className="text-[10px] px-2 py-0.5 rounded text-muted-foreground hover:text-ice">⧉ Copy</button>
         </div>
       </div>
       {tab === "preview" && isHtml ? (
-        <iframe sandbox="allow-scripts" srcDoc={previewSrc} className="w-full h-[420px] bg-white" title="preview" />
+        <div className="grid lg:grid-cols-2 gap-0">
+          <iframe sandbox="allow-scripts allow-forms" srcDoc={previewSrc} className="w-full h-[480px] bg-white border-r border-border" title="preview" />
+          <pre className="text-[10px] leading-relaxed p-3 overflow-auto max-h-[480px] text-foreground/80 bg-black/30"><code>{code}</code></pre>
+        </div>
       ) : (
         <pre className="text-[11px] leading-relaxed p-3 overflow-x-auto max-h-[500px] text-foreground/90"><code>{code}</code></pre>
       )}
