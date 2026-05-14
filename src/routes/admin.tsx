@@ -99,25 +99,47 @@ function Note({ text }: { text: string }) {
 }
 
 function Overview() {
-  const [stats, setStats] = useState({ users: 0, purchases: 0, appeals: 0, revenue: 0 });
+  const [stats, setStats] = useState<any>({ users: 0, purchases: 0, appeals: 0, revenue: 0 });
+  const [analytics, setAnalytics] = useState<any>({});
   const [actualRevenue, setActualRevenue] = useState(0);
   const [override, setOverride] = useState<number | null>(null);
   const [custom, setCustom] = useState("");
   const load = async () => {
-    const [u, p, a, r, s] = await Promise.all([
+    const [u, p, a, r, s, admins, pending, approved, rejected, dms, convs, msgs, flagged, upreq, credits, downloads, news] = await Promise.all([
       supabase.from("profiles").select("*", { count: "exact", head: true }),
       supabase.from("purchase_requests").select("*", { count: "exact", head: true }),
       supabase.from("appeals").select("*", { count: "exact", head: true }),
       supabase.from("purchase_requests").select("amount_cents").eq("status", "approved"),
       supabase.from("site_settings").select("value").eq("key", "revenue_override").maybeSingle(),
+      supabase.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "admin"),
+      supabase.from("purchase_requests").select("*", { count: "exact", head: true }).eq("status", "pending"),
+      supabase.from("purchase_requests").select("*", { count: "exact", head: true }).eq("status", "approved"),
+      supabase.from("purchase_requests").select("*", { count: "exact", head: true }).eq("status", "rejected"),
+      supabase.from("direct_messages").select("*", { count: "exact", head: true }),
+      supabase.from("ai_conversations").select("*", { count: "exact", head: true }),
+      supabase.from("ai_messages").select("*", { count: "exact", head: true }),
+      supabase.from("ai_flagged_reports").select("*", { count: "exact", head: true }).eq("reviewed", false),
+      supabase.from("ai_upgrade_requests").select("*", { count: "exact", head: true }).eq("status", "pending"),
+      supabase.from("ai_credits").select("balance,daily_allowance,tier"),
+      supabase.from("downloads").select("*", { count: "exact", head: true }),
+      supabase.from("news_posts").select("*", { count: "exact", head: true }),
     ]);
     const computed = (r.data ?? []).reduce((sum: number, x: any) => sum + (x.amount_cents || 0), 0) / 100;
     setActualRevenue(computed);
     const ov = (s.data?.value as any)?.amount;
     setOverride(typeof ov === "number" ? ov : null);
+    const totalCredits = (credits.data ?? []).reduce((sum: number, x: any) => sum + Number(x.balance || 0), 0);
+    const paidTiers = (credits.data ?? []).filter((x: any) => x.tier && x.tier !== "free").length;
     setStats({
       users: u.count ?? 0, purchases: p.count ?? 0, appeals: a.count ?? 0,
       revenue: typeof ov === "number" ? ov : computed,
+    });
+    setAnalytics({
+      admins: admins.count ?? 0, pending: pending.count ?? 0, approved: approved.count ?? 0, rejected: rejected.count ?? 0,
+      dms: dms.count ?? 0, ai_conversations: convs.count ?? 0, ai_messages: msgs.count ?? 0,
+      flagged_unreviewed: flagged.count ?? 0, ai_upgrades_pending: upreq.count ?? 0,
+      ai_total_credits: totalCredits.toFixed(1), ai_paid_users: paidTiers,
+      downloads: downloads.count ?? 0, news: news.count ?? 0,
     });
   };
   useEffect(() => { load(); }, []);
@@ -130,17 +152,46 @@ function Overview() {
     toast.success(amount === null ? "Reset to actual" : `Set to $${amount.toLocaleString()}`);
     setCustom(""); load();
   };
+  const ANALYTICS_CARDS: [string, string, string][] = [
+    ["admins", "Admins", "text-ice"],
+    ["pending", "Pending purchases", "text-amber-300"],
+    ["approved", "Approved sales", "text-emerald-300"],
+    ["rejected", "Rejected", "text-red-300"],
+    ["downloads", "Download links", "text-chrome"],
+    ["news", "News posts", "text-chrome"],
+    ["dms", "XenoText messages", "text-ice"],
+    ["ai_conversations", "AI conversations", "text-ice"],
+    ["ai_messages", "AI messages", "text-ice"],
+    ["ai_total_credits", "AI credits in circulation", "text-chrome"],
+    ["ai_paid_users", "AI paid-tier users", "text-emerald-300"],
+    ["ai_upgrades_pending", "AI upgrades pending", "text-amber-300"],
+    ["flagged_unreviewed", "⚠ Flagged (unreviewed)", "text-red-300"],
+  ];
   return (
     <div className="space-y-4">
       <div className="grid md:grid-cols-4 gap-4">
         {Object.entries(stats).map(([k, v]) => (
           <div key={k} className="glass rounded-xl p-6">
             <div className="text-xs tracking-display text-muted-foreground">{k.toUpperCase()}</div>
-            <div className="text-3xl text-chrome font-light mt-2">{k === "revenue" ? `$${(v as number).toLocaleString()}` : v}</div>
+            <div className="text-3xl text-chrome font-light mt-2">{k === "revenue" ? `$${(v as number).toLocaleString()}` : (v as any)}</div>
             {k === "revenue" && override !== null && <div className="text-[10px] mt-1 text-ice">OVERRIDE · actual ${actualRevenue.toLocaleString()}</div>}
           </div>
         ))}
       </div>
+
+      <div className="glass rounded-xl p-4">
+        <div className="text-xs tracking-brand text-ice mb-3">📊 ANALYTICS BAR — LIVE</div>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+          {ANALYTICS_CARDS.map(([k, label, color]) => (
+            <div key={k} className="border border-border rounded-lg p-3 bg-black/20">
+              <div className="text-[9px] tracking-display text-muted-foreground uppercase">{label}</div>
+              <div className={`text-xl font-light mt-1 ${color}`}>{analytics[k] ?? "—"}</div>
+            </div>
+          ))}
+        </div>
+        <button onClick={load} className="text-[10px] text-ice hover:underline mt-3">↻ Refresh analytics</button>
+      </div>
+
       <div className="glass rounded-xl p-4">
         <div className="text-xs tracking-brand text-ice mb-2">REVENUE DISPLAY</div>
         <div className="flex flex-wrap gap-2 items-center">
