@@ -6,6 +6,16 @@ export type CmsMap = Record<string, string>;
 const cache = new Map<string, CmsMap>();
 const listeners = new Map<string, Set<(m: CmsMap) => void>>();
 
+const LS_PREFIX = "hx-cms-v1::";
+function readLS(pageId: string): CmsMap | null {
+  if (typeof window === "undefined") return null;
+  try { const s = localStorage.getItem(LS_PREFIX + pageId); return s ? JSON.parse(s) : null; } catch { return null; }
+}
+function writeLS(pageId: string, m: CmsMap) {
+  if (typeof window === "undefined") return;
+  try { localStorage.setItem(LS_PREFIX + pageId, JSON.stringify(m)); } catch {}
+}
+
 export async function loadPageContent(pageId: string): Promise<CmsMap> {
   const { data } = await supabase
     .from("page_content")
@@ -14,15 +24,23 @@ export async function loadPageContent(pageId: string): Promise<CmsMap> {
   const map: CmsMap = {};
   (data ?? []).forEach((r: any) => (map[r.section_id] = r.content_text));
   cache.set(pageId, map);
+  writeLS(pageId, map);
   listeners.get(pageId)?.forEach((fn) => fn(map));
   return map;
 }
 
 export function usePageContent(pageId: string, fallback: CmsMap = {}) {
-  const [content, setContent] = useState<CmsMap>(() => cache.get(pageId) ?? fallback);
+  // Initialize from in-memory cache first, then localStorage, then fallback —
+  // this prevents the "old text flash" after navigation/refresh.
+  const [content, setContent] = useState<CmsMap>(() => {
+    if (cache.has(pageId)) return cache.get(pageId)!;
+    const ls = readLS(pageId);
+    if (ls) { cache.set(pageId, ls); return ls; }
+    return fallback;
+  });
   useEffect(() => {
-    if (!cache.has(pageId)) loadPageContent(pageId).then(setContent);
-    else setContent(cache.get(pageId)!);
+    // Always refetch in background to stay fresh.
+    loadPageContent(pageId).then(setContent);
     if (!listeners.has(pageId)) listeners.set(pageId, new Set());
     const set = listeners.get(pageId)!;
     set.add(setContent);

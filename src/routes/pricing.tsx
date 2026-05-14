@@ -4,6 +4,7 @@ import { Reveal } from "@/components/Motion";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PurchaseModal } from "@/components/PurchaseModal";
+import { getPrice } from "@/lib/prices";
 
 export const Route = createFileRoute("/pricing")({ component: Page });
 
@@ -27,7 +28,7 @@ function Page() {
                 <div className={`tilt-card glass rounded-2xl p-8 h-full flex flex-col ${p.highlight ? "ice-glow" : ""}`}>
                   {p.highlight && <div className="text-xs tracking-brand text-ice mb-3">RECOMMENDED</div>}
                   <div className="text-2xl font-light">{p.name}</div>
-                  <div className="mt-4 text-5xl font-light text-chrome">${(p.price_cents/100).toFixed(0)}</div>
+                  <div className="mt-4 text-5xl font-light text-chrome">${getPrice(p.plan_key, p.price_cents).toFixed(2)}</div>
                   <div className="text-xs text-muted-foreground tracking-display mt-1">{p.period.toUpperCase()}</div>
                   <ul className="mt-6 space-y-2 text-sm text-muted-foreground flex-1">
                     {(p.features as string[]).map((f) => <li key={f}>— {f}</li>)}
