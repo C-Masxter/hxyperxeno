@@ -37,15 +37,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "HYPER XENO — Premium Next-Gen Cybersecurity" },
+      { title: "HYPER XENO — LockDown Browser Bypass" },
       { name: "description", content: "Latest LockDown Browser Bypass
 [v5.0.1]" },
       { name: "author", content: "HYPER XENO" },
-      { property: "og:title", content: "HYPER XENO — Premium Next-Gen Cybersecurity" },
+      { property: "og:title", content: "HYPER XENO — LockDown Browser Bypass" },
       { property: "og:description", content: "Latest LockDown Browser Bypass
 [v5.0.1]" },
       { property: "og:type", content: "website" },
-      { name: "twitter:title", content: "HYPER XENO — Premium Next-Gen Cybersecurity" },
+      { name: "twitter:title", content: "HYPER XENO — LockDown Browser Bypass" },
       { name: "twitter:description", content: "Latest LockDown Browser Bypass
 [v5.0.1]" },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/95a17724-a615-40ad-9d1e-8da5bf1fcefc/id-preview-e52ddd8c--9da4b003-9a38-419c-91c1-dcc6f70d3610.lovable.app-1778435414646.png" },
