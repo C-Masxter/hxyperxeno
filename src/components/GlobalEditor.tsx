@@ -40,32 +40,53 @@ export function GlobalEditor() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const active = enabled && isAdmin;
 
-  // Apply persisted overrides (for everyone)
+  // Apply persisted overrides (for everyone) — keep re-applying as the DOM mutates,
+  // so React re-renders from async data don't wipe out saved edits for anon visitors.
   useEffect(() => {
     let cancelled = false;
-    const apply = async () => {
+    let rows: Array<{ section_id: string; content_text: string }> = [];
+    let obs: MutationObserver | null = null;
+    let applying = false;
+
+    const applyAll = () => {
+      const main = document.querySelector("main");
+      if (!main || rows.length === 0 || applying) return;
+      applying = true;
+      try {
+        rows.forEach((row) => {
+          try {
+            const el = main.querySelector(row.section_id);
+            if (el && el.textContent !== row.content_text) {
+              el.textContent = row.content_text;
+            }
+          } catch {}
+        });
+      } finally {
+        applying = false;
+      }
+    };
+
+    (async () => {
       const { data } = await supabase
         .from("page_content")
         .select("section_id, content_text")
         .eq("page_id", `auto:${path}`);
       if (cancelled || !data) return;
+      rows = data as any;
+      applyAll();
+      [100, 400, 1000, 2500].forEach((ms) =>
+        setTimeout(() => { if (!cancelled) applyAll(); }, ms)
+      );
       const main = document.querySelector("main");
       if (!main) return;
-      // try a few times in case of late renders
-      let tries = 0;
-      const run = () => {
-        data.forEach((row: any) => {
-          try {
-            const el = main.querySelector(row.section_id);
-            if (el && el.textContent !== row.content_text) el.textContent = row.content_text;
-          } catch {}
-        });
-        if (tries++ < 5) setTimeout(run, 300);
-      };
-      run();
+      obs = new MutationObserver(() => applyAll());
+      obs.observe(main, { childList: true, subtree: true, characterData: true });
+    })();
+
+    return () => {
+      cancelled = true;
+      if (obs) obs.disconnect();
     };
-    apply();
-    return () => { cancelled = true; };
   }, [path]);
 
   // Edit-mode wiring
