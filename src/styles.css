@@ -170,11 +170,12 @@
 
   .cursor-glow {
     pointer-events: none; position: fixed; z-index: 0;
-    width: 480px; height: 480px; border-radius: 50%;
-    background: radial-gradient(circle, oklch(0.82 0.13 230 / 0.10), transparent 60%);
+    width: 520px; height: 520px; border-radius: 50%;
+    background: radial-gradient(circle, oklch(0.82 0.13 230 / 0.18), oklch(0.82 0.13 230 / 0.05) 35%, transparent 65%);
     transform: translate(-50%, -50%);
-    transition: transform 80ms linear;
+    transition: transform 60ms linear;
     will-change: transform;
+    mix-blend-mode: screen;
   }
 
   .btn-ice {
