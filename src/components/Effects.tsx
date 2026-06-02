@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export function IntroLoader({ duration = 2600, label = "INITIALIZING DEFENSE GRID", forceKey }: { duration?: number; label?: string; forceKey?: string | number } = {}) {
-  const [done, setDone] = useState(typeof window === "undefined");
+  // Start hidden on both server and client to avoid hydration mismatch,
+  // then reveal on the client via effect.
+  const [show, setShow] = useState(false);
   useEffect(() => {
-    setDone(false);
-    const t = setTimeout(() => setDone(true), duration);
+    setShow(true);
+    const t = setTimeout(() => setShow(false), duration);
     return () => clearTimeout(t);
   }, [duration, forceKey]);
-  if (done) return null;
+  if (!show) return null;
   const letters = "HYPERXENO".split("");
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background animated-gradient">
@@ -43,19 +45,32 @@ export function CursorGlow() {
 }
 
 export function Particles() {
-  const dots = Array.from({ length: 30 });
+  // Render nothing during SSR/first-paint so server HTML matches client HTML,
+  // then mount the randomized dots after hydration.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  const dots = useMemo(() => Array.from({ length: 30 }).map(() => ({
+    w: Math.random() * 3 + 1,
+    h: Math.random() * 3 + 1,
+    l: Math.random() * 100,
+    t: Math.random() * 100,
+    d: 6 + Math.random() * 8,
+    s: Math.random() * 4,
+    o: 0.3 + Math.random() * 0.4,
+  })), []);
+  if (!mounted) return null;
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      {dots.map((_, i) => (
+      {dots.map((d, i) => (
         <span key={i}
           className="absolute rounded-full bg-ice/30"
           style={{
-            width: `${Math.random() * 3 + 1}px`,
-            height: `${Math.random() * 3 + 1}px`,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            animation: `bob ${6 + Math.random() * 8}s ease-in-out ${Math.random() * 4}s infinite`,
-            opacity: 0.3 + Math.random() * 0.4,
+            width: `${d.w}px`,
+            height: `${d.h}px`,
+            left: `${d.l}%`,
+            top: `${d.t}%`,
+            animation: `bob ${d.d}s ease-in-out ${d.s}s infinite`,
+            opacity: d.o,
           }} />
       ))}
     </div>

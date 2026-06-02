@@ -22,7 +22,7 @@ function Page() {
   const [text, setText] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const [recents, setRecents] = useState<string[]>([]);
-  const endRef = useRef<HTMLDivElement>(null);
+  
 
   // Load profiles + admin set
   useEffect(() => {
@@ -88,7 +88,16 @@ function Page() {
     })();
   }, [userId, active?.id]);
 
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages.length]);
+  // Auto-scroll ONLY inside the messages container (never the whole page),
+  // and only when the user is already near the bottom — so typing long
+  // messages while older history is scrolled into view doesn't yank you.
+  const messagesRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const c = messagesRef.current;
+    if (!c) return;
+    const nearBottom = c.scrollHeight - c.scrollTop - c.clientHeight < 120;
+    if (nearBottom) c.scrollTop = c.scrollHeight;
+  }, [messages.length]);
 
   // Search-only user discovery: only show users matching search query (no "browse all")
   const filtered = useMemo(() => {
@@ -176,7 +185,7 @@ function Page() {
                 </div>
                 {isAdmin && <span className="text-[10px] tracking-brand text-ice px-2 py-1 rounded bg-ice/10">ADMIN VIEW</span>}
               </div>
-              <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              <div ref={messagesRef} className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-2">
                 {messages.map((m) => {
                   const mine = m.sender_id === userId;
                   return (
@@ -195,7 +204,7 @@ function Page() {
                   );
                 })}
                 {messages.length === 0 && <div className="text-center text-xs text-muted-foreground mt-8">No messages yet — say hi.</div>}
-                <div ref={endRef} />
+                
               </div>
               <div className="border-t border-border p-3">
                 {showEmoji && (
