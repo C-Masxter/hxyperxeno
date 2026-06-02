@@ -20,12 +20,12 @@ function Page() {
           {products.map((p, i) => (
             <Reveal key={p.id} delay={i * 100}>
               <div className="tilt-card glass rounded-2xl p-8 h-full flex flex-col">
-                <div className="text-xs tracking-brand text-ice">{p.tier.toUpperCase()}</div>
-                <div className="mt-3 text-3xl font-light">{p.name}</div>
-                <div className="mt-2 text-sm text-muted-foreground flex-1">{p.description}</div>
-                <div className="mt-6 text-4xl font-light text-chrome">${getPrice(p.product_key, p.price_cents).toFixed(2)}</div>
+                <div data-edit-key={`products:product:${p.product_key}:tier`} className="text-xs tracking-brand text-ice">{p.tier.toUpperCase()}</div>
+                <div data-edit-key={`products:product:${p.product_key}:name`} className="mt-3 text-3xl font-light">{p.name}</div>
+                <div data-edit-key={`products:product:${p.product_key}:description`} className="mt-2 text-sm text-muted-foreground flex-1">{p.description}</div>
+                <div data-edit-key={`products:product:${p.product_key}:price`} className="mt-6 text-4xl font-light text-chrome">${getPrice(p.product_key, p.price_cents).toFixed(2)}</div>
                 <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
-                  {(p.features as string[]).map((f) => <li key={f}>— {f}</li>)}
+                  {(p.features as string[]).map((f, featureIndex) => <li key={f} data-edit-key={`products:product:${p.product_key}:feature:${featureIndex}`}>— {f}</li>)}
                 </ul>
                 <button onClick={() => setSelected(p)} className="btn-ice mt-8">Purchase</button>
               </div>
