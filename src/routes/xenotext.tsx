@@ -22,7 +22,7 @@ function Page() {
   const [text, setText] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const [recents, setRecents] = useState<string[]>([]);
-  const endRef = useRef<HTMLDivElement>(null);
+  
 
   // Load profiles + admin set
   useEffect(() => {
@@ -204,7 +204,7 @@ function Page() {
                   );
                 })}
                 {messages.length === 0 && <div className="text-center text-xs text-muted-foreground mt-8">No messages yet — say hi.</div>}
-                <div ref={endRef} />
+                
               </div>
               <div className="border-t border-border p-3">
                 {showEmoji && (
