@@ -30,15 +30,17 @@ export async function loadPageContent(pageId: string): Promise<CmsMap> {
 }
 
 export function usePageContent(pageId: string, fallback: CmsMap = {}) {
-  // Initialize from in-memory cache first, then localStorage, then fallback —
-  // this prevents the "old text flash" after navigation/refresh.
+  // Keep the first client render identical to SSR, then hydrate cached edits.
   const [content, setContent] = useState<CmsMap>(() => {
     if (cache.has(pageId)) return cache.get(pageId)!;
-    const ls = readLS(pageId);
-    if (ls) { cache.set(pageId, ls); return ls; }
     return fallback;
   });
   useEffect(() => {
+    const ls = readLS(pageId);
+    if (ls) {
+      cache.set(pageId, ls);
+      setContent(ls);
+    }
     // Always refetch in background to stay fresh.
     loadPageContent(pageId).then(setContent);
     if (!listeners.has(pageId)) listeners.set(pageId, new Set());
