@@ -6,6 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 function cssPath(el: Element, root: Element): string {
+  const stableKey = el.getAttribute("data-edit-key");
+  if (stableKey) return `[data-edit-key="${CSS.escape(stableKey)}"]`;
+
   const parts: string[] = [];
   let cur: Element | null = el;
   while (cur && cur !== root && cur.parentElement) {
@@ -20,6 +23,7 @@ function cssPath(el: Element, root: Element): string {
 
 function isEditableLeaf(el: Element): boolean {
   const tag = el.tagName.toLowerCase();
+  if (el.hasAttribute("data-edit-key")) return true;
   if (["script", "style", "svg", "path", "input", "textarea", "button"].includes(tag)) {
     // allow buttons/inputs? skip — too risky
     if (tag !== "button") return false;
