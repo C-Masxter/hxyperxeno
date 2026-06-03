@@ -353,73 +353,29 @@ export type Database = {
         Row: {
           content: string
           created_at: string
-          deleted_at: string | null
-          delivered_at: string | null
-          edited_at: string | null
           hidden_by_admin: boolean
           id: string
           read: boolean
           recipient_id: string
-          reply_to_id: string | null
           sender_id: string
         }
         Insert: {
           content: string
           created_at?: string
-          deleted_at?: string | null
-          delivered_at?: string | null
-          edited_at?: string | null
           hidden_by_admin?: boolean
           id?: string
           read?: boolean
           recipient_id: string
-          reply_to_id?: string | null
           sender_id: string
         }
         Update: {
           content?: string
           created_at?: string
-          deleted_at?: string | null
-          delivered_at?: string | null
-          edited_at?: string | null
           hidden_by_admin?: boolean
           id?: string
           read?: boolean
           recipient_id?: string
-          reply_to_id?: string | null
           sender_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "direct_messages_reply_to_id_fkey"
-            columns: ["reply_to_id"]
-            isOneToOne: false
-            referencedRelation: "direct_messages"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      dm_pins: {
-        Row: {
-          created_at: string
-          id: string
-          peer_id: string
-          priority: boolean
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          peer_id: string
-          priority?: boolean
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          peer_id?: string
-          priority?: boolean
-          user_id?: string
         }
         Relationships: []
       }
@@ -524,38 +480,6 @@ export type Database = {
           reason?: string | null
         }
         Relationships: []
-      }
-      message_reactions: {
-        Row: {
-          created_at: string
-          emoji: string
-          id: string
-          message_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          emoji: string
-          id?: string
-          message_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          emoji?: string
-          id?: string
-          message_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "message_reactions_message_id_fkey"
-            columns: ["message_id"]
-            isOneToOne: false
-            referencedRelation: "direct_messages"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       news_posts: {
         Row: {
@@ -872,30 +796,6 @@ export type Database = {
           service_name?: string
           status?: string
           updated_at?: string
-        }
-        Relationships: []
-      }
-      user_friends: {
-        Row: {
-          created_at: string
-          friend_id: string
-          id: string
-          trusted: boolean
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          friend_id: string
-          id?: string
-          trusted?: boolean
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          friend_id?: string
-          id?: string
-          trusted?: boolean
-          user_id?: string
         }
         Relationships: []
       }
