@@ -74,12 +74,12 @@ function Home() {
           {products.map((p, i) => (
             <Reveal key={p.id} delay={i * 120}>
               <div className="tilt-card glass rounded-2xl p-8 h-full">
-                <div className="text-xs tracking-brand text-ice">{p.tier.toUpperCase()}</div>
-                <div className="mt-3 text-2xl font-light">{p.name}</div>
-                <div className="mt-2 text-sm text-muted-foreground">{p.description}</div>
-                <div className="mt-6 text-3xl font-light text-chrome">${(p.price_cents/100).toFixed(2)}</div>
+                <div data-edit-key={`home:product:${p.product_key}:tier`} className="text-xs tracking-brand text-ice">{p.tier.toUpperCase()}</div>
+                <div data-edit-key={`home:product:${p.product_key}:name`} className="mt-3 text-2xl font-light">{p.name}</div>
+                <div data-edit-key={`home:product:${p.product_key}:description`} className="mt-2 text-sm text-muted-foreground">{p.description}</div>
+                <div data-edit-key={`home:product:${p.product_key}:price`} className="mt-6 text-3xl font-light text-chrome">${(p.price_cents/100).toFixed(2)}</div>
                 <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
-                  {(p.features as string[]).map((f) => <li key={f}>— {f}</li>)}
+                  {(p.features as string[]).map((f, featureIndex) => <li key={f} data-edit-key={`home:product:${p.product_key}:feature:${featureIndex}`}>— {f}</li>)}
                 </ul>
                 <Link to="/pricing" className="btn-ghost-ice mt-8 w-full">Select tier</Link>
               </div>
