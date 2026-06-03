@@ -44,7 +44,6 @@ export function Editable({ page, section, fallback = "", as: Tag = "span", class
   return (
     <Tag
       ref={ref as any}
-      data-edit-key={`${page}:${section}`}
       className={`${className ?? ""} ${canEdit ? "editable-outline" : ""}`}
       contentEditable={canEdit}
       suppressContentEditableWarning

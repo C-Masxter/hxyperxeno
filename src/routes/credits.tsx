@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader, PageShell } from "@/components/Page";
 import { Editable } from "@/components/Editable";
 import { Reveal } from "@/components/Motion";
-import hyperxenoLogo from "@/assets/hyperxeno-logo.png";
 
 export const Route = createFileRoute("/credits")({ component: Page });
 
@@ -24,23 +23,6 @@ function Page() {
     <>
       <PageHeader page="credits" eyebrow="CREDITS" fallbackTitle="The HYPER XENO Collective" fallbackBody="Built by hackers, designers, and defenders. Special thanks to every contributor and supporter." />
       <PageShell>
-        <Reveal>
-          <div className="flex flex-col items-center justify-center mb-10">
-            <div className="relative">
-              <div className="absolute inset-0 blur-3xl bg-ice/20 rounded-full" />
-              <img
-                src={hyperxenoLogo}
-                alt="HYPER XENO logo"
-                width={1024}
-                height={1024}
-                loading="lazy"
-                className="relative w-44 md:w-56 h-auto drop-shadow-[0_0_40px_oklch(0.82_0.13_230_/_0.4)]"
-              />
-            </div>
-            <div className="mt-4 text-xs tracking-brand text-muted-foreground">EST. 2026 · DEFENSE GRID</div>
-          </div>
-        </Reveal>
-
         <Section title="JOIN THE COMMUNITY">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
