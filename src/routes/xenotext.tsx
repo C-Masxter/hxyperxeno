@@ -516,7 +516,7 @@ function UserRow({ p, active, isAdmin, online, pinned, priority, onClick, onPin,
         {pinned && !priority && <span className="text-[10px] text-ice">📌</span>}
         {isAdmin && <span className="text-[9px] tracking-brand text-ice ml-auto">ADMIN</span>}
       </button>
-      <div className="opacity-0 group-hover:opacity-100 transition flex gap-1 pr-2">
+      <div className="opacity-70 group-hover:opacity-100 transition flex gap-1 pr-2">
         <button onClick={(e) => { e.stopPropagation(); onStar(); }} title="Priority" className="text-xs hover:text-yellow-300">⭐</button>
         <button onClick={(e) => { e.stopPropagation(); onPin(); }} title="Pin" className="text-xs hover:text-ice">📌</button>
       </div>
