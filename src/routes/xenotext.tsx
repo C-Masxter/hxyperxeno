@@ -238,7 +238,7 @@ function Page() {
       reply_to_id: replyTo?.id ?? null, edited_at: null, deleted_at: null, delivered_at: null,
     };
     setMessages((m) => [...m, optimistic]);
-    stickyRef.current = true; // sending always sticks
+    // do NOT force sticky — respect user scroll position
     const { error, data } = await supabase.from("direct_messages")
       .insert({ sender_id: userId, recipient_id: active.id, content, reply_to_id: replyTo?.id ?? null })
       .select().single();
