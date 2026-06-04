@@ -443,7 +443,7 @@ function Page() {
                         )}
                       </div>
                       {/* hover actions */}
-                      <div className={`opacity-0 group-hover:opacity-100 transition flex gap-1 ${mine ? "mr-2 order-first" : "ml-2"} self-center`}>
+                      <div className={`opacity-60 hover:opacity-100 group-hover:opacity-100 transition flex gap-1 ${mine ? "mr-2 order-first" : "ml-2"} self-center`}>
                         <button onClick={() => setReactPickerFor((c) => c === m.id ? null : m.id)} title="React" className="text-[11px] px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/15">🙂</button>
                         <button onClick={() => { setReplyTo(m); setEditing(null); inputRef.current?.focus(); }} title="Reply" className="text-[11px] px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/15">↪</button>
                         {canEdit && <button onClick={() => startEdit(m)} title="Edit (2 min)" className="text-[11px] px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/15">✎</button>}
