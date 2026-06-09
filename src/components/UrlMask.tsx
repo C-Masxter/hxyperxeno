@@ -2,8 +2,7 @@ import { useEffect } from "react";
 import { useRouterState, useRouter } from "@tanstack/react-router";
 
 // Visual URL obfuscation.
-// Real path is kept internally for routing; the address bar shows a fake path.
-// Format: /settings/values/root/<base64url(realPath)>
+// Real path drives routing; address bar shows /settings/values/root/<token>.
 const PREFIX = "/settings/values/root/";
 
 function encodePath(real: string): string {
@@ -18,7 +17,7 @@ function encodePath(real: string): string {
   }
 }
 
-function decodePath(fake: string): string | null {
+export function decodeMaskedPath(fake: string): string | null {
   if (!fake.startsWith(PREFIX)) return null;
   const token = fake.slice(PREFIX.length).split("/")[0];
   if (!token) return "/";
@@ -34,34 +33,24 @@ function decodePath(fake: string): string | null {
 export function UrlMask() {
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const search = useRouterState({ select: (s) => s.location.searchStr });
-  const hash = useRouterState({ select: (s) => s.location.hash });
 
-  // On initial load: if URL is a masked one, navigate to the real path.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const here = window.location.pathname;
-    if (here.startsWith(PREFIX)) {
-      const real = decodePath(here);
-      if (real && real !== here) {
+    if (pathname.startsWith(PREFIX)) {
+      const real = decodeMaskedPath(pathname);
+      if (real && real !== pathname) {
         router.navigate({ to: real, replace: true });
       }
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // After router settles, rewrite the visible URL to the masked form.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (pathname.startsWith(PREFIX)) return; // already masked
-    const masked =
-      encodePath(pathname) + (search ? `?${search}` : "") + (hash ? `#${hash}` : "");
+    const { search, hash } = window.location;
+    const masked = encodePath(pathname) + (search || "") + (hash || "");
     try {
       window.history.replaceState(window.history.state, "", masked);
     } catch {
       /* noop */
     }
-  }, [pathname, search, hash]);
+  }, [pathname, router]);
 
   return null;
 }
