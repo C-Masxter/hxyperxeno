@@ -85,6 +85,7 @@ function RootComponent() {
       <Particles />
       <GlobalEditor />
       <DMPopup />
+      <UrlMask />
       <div className="relative z-10 flex min-h-screen flex-col">
         <Navbar />
         <main className="flex-1"><Outlet /></main>
