@@ -5,7 +5,9 @@ import { Navbar, Footer } from "@/components/Layout";
 import { IntroLoader, CursorGlow, Particles } from "@/components/Effects";
 import { GlobalEditor } from "@/components/GlobalEditor";
 import { DMPopup } from "@/components/DMPopup";
+import { UrlMask, decodeMaskedPath } from "@/components/UrlMask";
 import { Toaster } from "sonner";
+import { useEffect } from "react";
 
 function NotFoundComponent() {
   return (
