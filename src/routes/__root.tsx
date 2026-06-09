@@ -5,9 +5,19 @@ import { Navbar, Footer } from "@/components/Layout";
 import { IntroLoader, CursorGlow, Particles } from "@/components/Effects";
 import { GlobalEditor } from "@/components/GlobalEditor";
 import { DMPopup } from "@/components/DMPopup";
+import { UrlMask, decodeMaskedPath } from "@/components/UrlMask";
 import { Toaster } from "sonner";
+import { useEffect } from "react";
 
 function NotFoundComponent() {
+  // If the user landed/refreshed on a masked URL, decode and redirect.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const real = decodeMaskedPath(window.location.pathname);
+    if (real) {
+      window.location.replace(real + window.location.search + window.location.hash);
+    }
+  }, []);
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="text-center">
@@ -75,6 +85,7 @@ function RootComponent() {
       <Particles />
       <GlobalEditor />
       <DMPopup />
+      <UrlMask />
       <div className="relative z-10 flex min-h-screen flex-col">
         <Navbar />
         <main className="flex-1"><Outlet /></main>
